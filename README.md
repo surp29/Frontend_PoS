@@ -1,8 +1,15 @@
+<<<<<<< HEAD
 # PoS Frontend
 
 ## 🎨 Flask Frontend Application
 
 Frontend application được xây dựng với Flask, cung cấp giao diện người dùng cho hệ thống quản lý bán hàng PoS.
+=======
+# PhanMemKeToan Frontend
+
+## 🎨 Flask Frontend Application
+
+Frontend application được xây dựng với Flask, cung cấp giao diện người dùng cho hệ thống quản lý bán hàng PhanMemKeToan.
 
 ## 📋 Tính năng
 
