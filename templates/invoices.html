@@ -1,0 +1,807 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý hóa đơn - PhanMemKeToan{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-file-invoice"></i> Quản lý hóa đơn
+{% endblock %}
+
+{% block page_description %}
+Quản lý và theo dõi các hóa đơn, xử lý thanh toán và cập nhật trạng thái hóa đơn
+{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-file-invoice"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalInvoices">0</div>
+            <div class="stat-label">Tổng hóa đơn</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="paidInvoices">0</div>
+            <div class="stat-label">Đã thanh toán</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="pendingInvoices">0</div>
+            <div class="stat-label">Chưa thanh toán</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-money-bill-wave"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalRevenue">0 VNĐ</div>
+            <div class="stat-label">Tổng doanh thu</div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Tabs -->
+<div class="tabs-container">
+<div class="tabs">
+  <button class="tab active" data-status="all">Tất cả</button>
+  <button class="tab" data-status="Đã thanh toán">Đã thanh toán</button>
+  <button class="tab" data-status="Chưa thanh toán">Chưa thanh toán</button>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <div class="filter-row">
+        <div class="form-group">
+            <label class="form-label">Tìm kiếm</label>
+            <div class="search-input">
+                <i class="fas fa-search"></i>
+                <input type="text" class="form-input" id="searchInvoice" placeholder="Tìm theo số hóa đơn, khách hàng...">
+  </div>
+  </div>
+        
+        <div class="form-group">
+            <label class="form-label">Từ ngày</label>
+            <input type="date" class="form-input" id="fromDate">
+  </div>
+        
+        <div class="form-group">
+            <label class="form-label">Đến ngày</label>
+            <input type="date" class="form-input" id="toDate">
+  </div>
+        
+        <div class="form-group">
+            <label class="form-label">Loại hóa đơn</label>
+            <select class="form-select" id="typeFilter">
+                <option value="">Tất cả loại</option>
+      <option value="Sản phẩm">Sản phẩm</option>
+      <option value="Hành động">Hành động</option>
+    </select>
+</div>
+
+        <div class="form-group">
+            <button class="btn btn-secondary" onclick="clearFilters()">
+                <i class="fas fa-times"></i>
+                Xóa bộ lọc
+            </button>
+        </div>
+    </div>
+  </div>
+
+<!-- Invoices Table -->
+<div class="table-container">
+    <div class="card">
+        <div class="card-header">
+            <h3>Danh sách hóa đơn</h3>
+            <button class="btn btn-primary" onclick="openAddInvoiceModal()">
+                <i class="fas fa-plus"></i>
+                Thêm hóa đơn
+    </button>
+  </div>
+        <div class="card-body p-0">
+            <table class="table" id="invoicesTable">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Số hóa đơn</th>
+                        <th>Ngày tạo</th>
+                        <th>Khách hàng</th>
+                        <th>Loại HĐ</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="invoicesTableBody">
+                    <!-- Data will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+  </div>
+</div>
+
+<!-- Pagination -->
+<div class="pagination" id="pagination">
+    <!-- Pagination will be generated here -->
+</div>
+
+<!-- Add Invoice Modal -->
+<div class="modal-overlay" id="addInvoiceModal" style="display: none;">
+    <div class="modal modal-horizontal">
+    <div class="modal-header">
+            <h3><i class="fas fa-plus"></i> Thêm hóa đơn mới</h3>
+            <button class="modal-close" onclick="closeAddInvoiceModal()">
+                <i class="fas fa-times"></i>
+            </button>
+    </div>
+        <div class="modal-body">
+            <form id="addInvoiceForm">
+       <div class="form-row">
+         <div class="form-group">
+                        <label class="form-label">Số hóa đơn *</label>
+                        <input type="text" class="form-input" name="so_hoa_don" required placeholder="Nhập số hóa đơn">
+         </div>
+         <div class="form-group">
+                        <label class="form-label">Ngày tạo *</label>
+                        <input type="date" class="form-input" name="ngay_tao" required>
+         </div>
+       </div>
+      
+         <div class="form-group">
+                    <label class="form-label">Tên khách hàng *</label>
+                    <input type="text" class="form-input" name="ten_khach_hang" required placeholder="Nhập tên khách hàng">
+       </div>
+      
+       <div class="form-row">
+         <div class="form-group">
+                        <label class="form-label">Loại hóa đơn *</label>
+                        <select class="form-select" name="loai_hd" required>
+                            <option value="">Chọn loại hóa đơn</option>
+             <option value="Sản phẩm">Sản phẩm</option>
+             <option value="Hành động">Hành động</option>
+           </select>
+         </div>
+         <div class="form-group">
+                        <label class="form-label">Trạng thái *</label>
+                        <select class="form-select" name="trang_thai" required>
+                            <option value="">Chọn trạng thái</option>
+             <option value="Đã thanh toán">Đã thanh toán</option>
+             <option value="Chưa thanh toán">Chưa thanh toán</option>
+           </select>
+         </div>
+       </div>
+      
+                <div class="form-group">
+                    <label class="form-label">Tổng tiền *</label>
+                    <div class="money-input-container">
+                        <input type="text" id="add_tong_tien_display" class="form-input" placeholder="0" oninput="formatMoneyTyping(this, document.getElementById('add_tong_tien'))">
+                        <input type="hidden" name="tong_tien" id="add_tong_tien">
+                        <span class="currency-unit">VNĐ</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Ghi chú</label>
+                    <textarea class="form-textarea" name="ghi_chu" rows="3" placeholder="Nhập ghi chú"></textarea>
+      </div>
+    </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeAddInvoiceModal()">Hủy</button>
+            <button type="button" class="btn btn-primary" onclick="createInvoice()">Tạo hóa đơn</button>
+        </div>
+  </div>
+</div>
+
+<!-- Edit Invoice Modal -->
+<div class="modal-overlay" id="editInvoiceModal" style="display: none;">
+    <div class="modal modal-horizontal">
+    <div class="modal-header">
+            <h3><i class="fas fa-edit"></i> Chỉnh sửa hóa đơn</h3>
+            <button class="modal-close" onclick="closeEditInvoiceModal()">
+                <i class="fas fa-times"></i>
+            </button>
+    </div>
+        <div class="modal-body">
+            <form id="editInvoiceForm">
+                <input type="hidden" name="id">
+      
+      <div class="form-row">
+        <div class="form-group">
+                        <label class="form-label">Số hóa đơn</label>
+                        <input type="text" class="form-input" name="so_hoa_don" readonly>
+        </div>
+        <div class="form-group">
+                        <label class="form-label">Ngày tạo *</label>
+                        <input type="date" class="form-input" name="ngay_tao" required>
+        </div>
+      </div>
+      
+        <div class="form-group">
+                    <label class="form-label">Tên khách hàng</label>
+                    <input type="text" class="form-input" name="ten_khach_hang" readonly>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+                        <label class="form-label">Loại hóa đơn</label>
+                        <select class="form-select" name="loai_hd" readonly>
+            <option value="Sản phẩm">Sản phẩm</option>
+            <option value="Hành động">Hành động</option>
+          </select>
+        </div>
+        <div class="form-group">
+                        <label class="form-label">Trạng thái *</label>
+                        <select class="form-select" name="trang_thai" required>
+            <option value="Đã thanh toán">Đã thanh toán</option>
+            <option value="Chưa thanh toán">Chưa thanh toán</option>
+          </select>
+        </div>
+      </div>
+      
+                <div class="form-group">
+                    <label class="form-label">Tổng tiền</label>
+                    <div class="money-input-container">
+                        <input type="text" id="edit_tong_tien_display" class="form-input" readonly>
+                        <input type="hidden" name="tong_tien" id="edit_tong_tien">
+                        <span class="currency-unit">VNĐ</span>
+  </div>
+</div>
+
+                <div class="form-group">
+                    <label class="form-label">Ghi chú</label>
+                    <textarea class="form-textarea" name="ghi_chu" rows="3"></textarea>
+    </div>
+            </form>
+    </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeEditInvoiceModal()">Hủy</button>
+            <button type="button" class="btn btn-primary" onclick="updateInvoice()">Cập nhật</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteInvoiceModal" style="display: none;">
+    <div class="modal modal-small">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Xác nhận xóa</h3>
+            <button class="modal-close" onclick="closeDeleteInvoiceModal()">
+                <i class="fas fa-times"></i>
+            </button>
+    </div>
+        <div class="modal-body">
+            <p>Bạn có chắc chắn muốn xóa hóa đơn này không?</p>
+            <p class="text-gray-600">Hành động này không thể hoàn tác.</p>
+    </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteInvoiceModal()">Hủy</button>
+            <button type="button" class="btn btn-danger" onclick="confirmDeleteInvoice()">Xóa</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+}
+
+.stat-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-6);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    transition: all var(--transition-normal);
+}
+
+.stat-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--spacing-4);
+}
+
+.stat-icon i {
+    font-size: var(--font-size-xl);
+    color: white;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: var(--spacing-1);
+}
+
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+.tabs-container {
+    margin-bottom: var(--spacing-6);
+}
+
+.tabs {
+    display: flex;
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-1);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    overflow-x: auto;
+}
+
+.tab {
+    flex: 1;
+    padding: var(--spacing-3) var(--spacing-4);
+    border: none;
+    background: transparent;
+    color: var(--gray-600);
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    white-space: nowrap;
+}
+
+.tab:hover {
+    background: var(--gray-50);
+    color: var(--gray-700);
+}
+
+.tab.active {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.money-input-container {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.money-input-container .form-input {
+    flex: 1;
+}
+
+.currency-unit {
+    font-weight: 600;
+    color: var(--gray-600);
+    font-size: var(--font-size-sm);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Global variables
+let invoicesData = [];
+let filteredInvoices = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+let deleteInvoiceId = null;
+let currentStatus = 'all';
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadInvoicesData();
+    setupEventListeners();
+});
+
+// Setup event listeners
+function setupEventListeners() {
+    // Tab clicks
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            currentStatus = this.getAttribute('data-status');
+            filterInvoices();
+  });
+});
+
+    // Filter inputs
+    document.getElementById('searchInvoice').addEventListener('input', debounce(filterInvoices, 300));
+    document.getElementById('fromDate').addEventListener('change', filterInvoices);
+    document.getElementById('toDate').addEventListener('change', filterInvoices);
+    document.getElementById('typeFilter').addEventListener('change', filterInvoices);
+}
+
+// Load invoices data
+async function loadInvoicesData() {
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/invoices/');
+        if (response.ok) {
+            invoicesData = await response.json();
+            filteredInvoices = [...invoicesData];
+            updateStatistics();
+            filterInvoices();
+            } else {
+            console.error('Failed to load invoices');
+        }
+    } catch (error) {
+        console.error('Error loading invoices:', error);
+    }
+}
+
+// Update statistics
+function updateStatistics() {
+    const totalInvoices = invoicesData.length;
+    const paidInvoices = invoicesData.filter(i => i.trang_thai === 'Đã thanh toán').length;
+    const pendingInvoices = invoicesData.filter(i => i.trang_thai === 'Chưa thanh toán').length;
+    const totalRevenue = invoicesData.reduce((sum, invoice) => sum + (invoice.tong_tien || 0), 0);
+    
+    document.getElementById('totalInvoices').textContent = totalInvoices;
+    document.getElementById('paidInvoices').textContent = paidInvoices;
+    document.getElementById('pendingInvoices').textContent = pendingInvoices;
+    document.getElementById('totalRevenue').textContent = totalRevenue.toLocaleString() + ' VNĐ';
+}
+
+// Filter invoices
+function filterInvoices() {
+    const searchTerm = document.getElementById('searchInvoice').value.toLowerCase();
+    const fromDate = document.getElementById('fromDate').value;
+    const toDate = document.getElementById('toDate').value;
+    const typeFilter = document.getElementById('typeFilter').value;
+    
+    filteredInvoices = invoicesData.filter(invoice => {
+        const matchesSearch = !searchTerm || 
+                             (invoice.so_hoa_don && invoice.so_hoa_don.toLowerCase().includes(searchTerm)) ||
+                             (invoice.ten_khach_hang && invoice.ten_khach_hang.toLowerCase().includes(searchTerm));
+        
+        const invoiceDate = invoice.ngay_tao;
+        const matchesFromDate = !fromDate || !invoiceDate || invoiceDate >= fromDate;
+        const matchesToDate = !toDate || !invoiceDate || invoiceDate <= toDate;
+        
+        const matchesTypeFilter = !typeFilter || invoice.loai_hd === typeFilter;
+        
+        const matchesTabStatus = currentStatus === 'all' || invoice.trang_thai === currentStatus;
+        
+        return matchesSearch && matchesFromDate && matchesToDate && matchesTypeFilter && matchesTabStatus;
+    });
+    
+    currentPage = 1;
+    updateInvoicesTable();
+    updatePagination();
+}
+
+// Clear filters
+function clearFilters() {
+    document.getElementById('searchInvoice').value = '';
+    document.getElementById('fromDate').value = '';
+    document.getElementById('toDate').value = '';
+    document.getElementById('typeFilter').value = '';
+    
+    // Reset to all tab
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('.tab[data-status="all"]').classList.add('active');
+    currentStatus = 'all';
+    
+    filteredInvoices = [...invoicesData];
+    currentPage = 1;
+    updateInvoicesTable();
+    updatePagination();
+}
+
+// Update invoices table
+function updateInvoicesTable() {
+    const tbody = document.getElementById('invoicesTableBody');
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageInvoices = filteredInvoices.slice(startIndex, endIndex);
+    
+    tbody.innerHTML = pageInvoices.map((invoice, index) => `
+        <tr>
+            <td>${startIndex + index + 1}</td>
+            <td><strong>${invoice.so_hoa_don || '-'}</strong></td>
+            <td>${invoice.ngay_tao || '-'}</td>
+            <td>${invoice.ten_khach_hang || '-'}</td>
+            <td><span class="badge badge-info">${invoice.loai_hd || '-'}</span></td>
+            <td>${(invoice.tong_tien || 0).toLocaleString()} VNĐ</td>
+            <td>${getStatusBadge(invoice.trang_thai)}</td>
+            <td>
+                <div class="table-actions">
+                    <button class="btn btn-sm btn-primary" onclick="editInvoice(${invoice.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteInvoice(${invoice.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Update pagination
+function updatePagination() {
+    const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
+    const pagination = document.getElementById('pagination');
+    
+    if (totalPages <= 1) {
+        pagination.innerHTML = '';
+    return; 
+  }
+
+    let paginationHTML = '';
+    
+    // Previous button
+    paginationHTML += `
+        <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+    `;
+    
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+    
+    if (startPage > 1) {
+        paginationHTML += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`;
+        if (startPage > 2) {
+            paginationHTML += `<span class="text-gray-500">...</span>`;
+        }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+            <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">
+                ${i}
+            </button>
+        `;
+    }
+    
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            paginationHTML += `<span class="text-gray-500">...</span>`;
+        }
+        paginationHTML += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+    }
+    
+    // Next button
+    paginationHTML += `
+        <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    `;
+    
+    pagination.innerHTML = paginationHTML;
+}
+
+// Go to page
+function goToPage(page) {
+    const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
+    if (page >= 1 && page <= totalPages) {
+        currentPage = page;
+        updateInvoicesTable();
+        updatePagination();
+    }
+}
+
+// Modal functions
+function openAddInvoiceModal() {
+    const modal = document.getElementById('addInvoiceModal');
+    const form = document.getElementById('addInvoiceForm');
+    
+    modal.style.display = 'flex';
+    form.reset();
+    document.getElementById('add_tong_tien_display').value = '';
+    document.getElementById('add_tong_tien').value = '';
+    
+    // Store initial state
+    storeModalState('addInvoiceModal', form);
+}
+
+function closeAddInvoiceModal() {
+    document.getElementById('addInvoiceModal').style.display = 'none';
+    clearModalState('addInvoiceModal');
+    loadInvoicesData();
+    showSuccessMessage('Thêm thành công!');
+}
+
+function editInvoice(id) {
+    const invoice = invoicesData.find(i => i.id === id);
+    if (invoice) {
+        const form = document.getElementById('editInvoiceForm');
+        form.querySelector('input[name="id"]').value = invoice.id;
+        form.querySelector('input[name="so_hoa_don"]').value = invoice.so_hoa_don || '';
+        form.querySelector('input[name="ngay_tao"]').value = invoice.ngay_tao || '';
+        form.querySelector('input[name="ten_khach_hang"]').value = invoice.ten_khach_hang || '';
+        form.querySelector('select[name="loai_hd"]').value = invoice.loai_hd || '';
+        form.querySelector('select[name="trang_thai"]').value = invoice.trang_thai || '';
+        form.querySelector('textarea[name="ghi_chu"]').value = invoice.ghi_chu || '';
+        
+        const tongTien = invoice.tong_tien || 0;
+        document.getElementById('edit_tong_tien').value = tongTien;
+        document.getElementById('edit_tong_tien_display').value = tongTien.toLocaleString();
+        
+        // Store initial state for edit modal
+        storeModalState('editInvoiceModal', form);
+        
+        document.getElementById('editInvoiceModal').style.display = 'flex';
+    }
+}
+
+function closeEditInvoiceModal() {
+    closeModalWithConfirmation('editInvoiceModal');
+}
+
+async function createInvoice() {
+    const form = document.getElementById('addInvoiceForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    
+    // Convert numeric fields
+    data.tong_tien = parseInt(document.getElementById('add_tong_tien').value || '0');
+    
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/invoices/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            document.getElementById('addInvoiceModal').style.display = 'none';
+            clearModalState('addInvoiceModal');
+            loadInvoicesData();
+            showSuccessMessage('Tạo hóa đơn thành công!');
+      } else {
+            showErrorMessage(result.message || 'Có lỗi xảy ra khi tạo hóa đơn');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi tạo hóa đơn');
+    }
+}
+
+async function updateInvoice() {
+    const form = document.getElementById('editInvoiceForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    const id = data.id;
+    delete data.id;
+    
+    // Convert numeric fields
+    data.tong_tien = parseInt(document.getElementById('edit_tong_tien').value || '0');
+    
+    try {
+        const response = await fetch(`{{ BACKEND_URL }}/api/invoices/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            document.getElementById('editInvoiceModal').style.display = 'none';
+            clearModalState('editInvoiceModal');
+            loadInvoiceData();
+            showSuccessMessage('Cập nhật thành công!');
+  } else {
+            showErrorMessage(result.message || 'Có lỗi xảy ra khi cập nhật hóa đơn');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi cập nhật hóa đơn');
+    }
+}
+
+function deleteInvoice(id) {
+    deleteInvoiceId = id;
+    document.getElementById('deleteInvoiceModal').style.display = 'flex';
+}
+
+function closeDeleteInvoiceModal() {
+    document.getElementById('deleteInvoiceModal').style.display = 'none';
+    deleteInvoiceId = null;
+}
+
+async function confirmDeleteInvoice() {
+    if (!deleteInvoiceId) return;
+    
+    try {
+        const response = await fetch(`{{ BACKEND_URL }}/api/invoices/${deleteInvoiceId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+        closeDeleteInvoiceModal();
+            loadInvoicesData();
+            showSuccessMessage('Xóa hóa đơn thành công!');
+      } else {
+            showErrorMessage(result.message || 'Có lỗi xảy ra khi xóa hóa đơn');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi xóa hóa đơn');
+    }
+}
+
+// Utility functions
+function getStatusBadge(status) {
+    const badges = {
+        'Đã thanh toán': '<span class="badge badge-success">Đã thanh toán</span>',
+        'Chưa thanh toán': '<span class="badge badge-warning">Chưa thanh toán</span>'
+    };
+    return badges[status] || '<span class="badge badge-secondary">Không xác định</span>';
+}
+
+function formatMoneyTyping(sourceInput, hiddenInput) {
+    const raw = (sourceInput.value || '').replace(/[^0-9]/g, '');
+    if (!raw) {
+        sourceInput.value = '';
+        if (hiddenInput) hiddenInput.value = '';
+        return;
+    }
+    if (hiddenInput) hiddenInput.value = raw;
+    sourceInput.value = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function showSuccessMessage(message) {
+    showSuccessModal('Thành công', message);
+}
+
+function showErrorMessage(message) {
+    showErrorModal('Lỗi', message);
+}
+</script>
+{% endblock %}

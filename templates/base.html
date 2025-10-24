@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PhanMemKeToan{% endblock %}</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-calculator"></i> PhanMemKeToan</h2>
+        </div>
+
+        <nav class="sidebar-nav">
+        <ul>
+            <li>
+                    <a href="{{ url_for('general_diary') }}" {% if request.endpoint == 'general_diary' %}class="active"{% endif %}>
+                        <i class="fas fa-home"></i>
+                        Nhật ký chung
+                    </a>
+                </li>
+
+                <li>
+              <a href="javascript:void(0)" class="dropdown-btn {% if request.endpoint in ['products','product_groups','prices'] %}active{% endif %}" data-dropdown="products">
+                        <i class="fas fa-box"></i>
+                        Quản lý sản phẩm
+                        <i class="fas fa-chevron-down" style="margin-left: auto; font-size: 12px;"></i>
+                </a>
+                <ul class="dropdown-container" {% if request.endpoint in ['products','product_groups','prices'] %}style="display:block;"{% endif %}>
+                    <li><a href="{{ url_for('products') }}" {% if request.endpoint == 'products' %}class="active"{% endif %}>Sản phẩm</a></li>
+                        <li><a href="{{ url_for('product_groups') }}" {% if request.endpoint == 'product_groups' %}class="active"{% endif %}>Nhóm sản phẩm</a></li>
+                    <li><a href="{{ url_for('prices') }}" {% if request.endpoint == 'prices' %}class="active"{% endif %}>Bảng giá</a></li>
+                </ul>
+            </li>
+                
+                <li>
+                    <a href="{{ url_for('orders') }}" {% if request.endpoint == 'orders' %}class="active"{% endif %}>
+                        <i class="fas fa-shopping-cart"></i>
+                        Đơn hàng
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="{{ url_for('invoices') }}" {% if request.endpoint == 'invoices' %}class="active"{% endif %}>
+                        <i class="fas fa-file-invoice"></i>
+                        Hóa đơn
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="{{ url_for('warehouse') }}" {% if request.endpoint == 'warehouse' %}class="active"{% endif %}>
+                        <i class="fas fa-warehouse"></i>
+                        Kho hàng
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="{{ url_for('areas_management') }}" {% if request.endpoint == 'areas_management' %}class="active"{% endif %}>
+                        <i class="fas fa-map-marker-alt"></i>
+                        Quản lý khu vực
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="{{ url_for('shops_management') }}" {% if request.endpoint == 'shops_management' %}class="active"{% endif %}>
+                        <i class="fas fa-store"></i>
+                        Quản lý shop
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="{{ url_for('reports') }}" {% if request.endpoint == 'reports' %}class="active"{% endif %}>
+                        <i class="fas fa-chart-line"></i>
+                        Báo cáo
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="{{ url_for('account_management') }}" {% if request.endpoint == 'account_management' %}class="active"{% endif %}>
+                        <i class="fas fa-users-cog"></i>
+                        Quản lý tài khoản
+                    </a>
+                </li>
+        </ul>
+        </nav>
+        
+        <!-- User Account Section -->
+        <div class="user-account-section">
+            <div class="user-info" onclick="toggleUserMenu()">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="user-details">
+                    <span class="username" id="username-display">Khách</span>
+                    <span class="user-role">Quản trị viên</span>
+                </div>
+                <i class="fas fa-chevron-down user-menu-toggle"></i>
+    </div>
+
+            <div class="user-menu" id="userMenu">
+                <a href="#" onclick="openSwitchAccountModal()">
+                    <i class="fas fa-exchange-alt"></i>
+                    Chuyển tài khoản
+                </a>
+                <a href="#" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Đăng xuất
+                </a>
+        </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Content Header -->
+        <div class="content-header">
+            <div class="header-left">
+                <h1>{% block page_title %}Trang chủ{% endblock %}</h1>
+                <p class="page-description">{% block page_description %}{% endblock %}</p>
+    </div>
+            <div class="header-right">
+                {% block header_actions %}{% endblock %}
+          </div>
+        </div>
+
+        <!-- Content Body -->
+        <div class="content-body">
+            {% block content %}{% endblock %}
+      </div>
+    </div>
+
+    <!-- Switch Account Modal -->
+    <div class="modal-overlay" id="switchAccountModal" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Chuyển tài khoản</h3>
+                <button class="modal-close" onclick="closeSwitchAccountModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+            <form id="switchAccountForm">
+                <div class="form-group">
+                        <label class="form-label">Tên đăng nhập</label>
+                        <input type="text" class="form-input" name="username" placeholder="Nhập tên đăng nhập" required>
+                </div>
+                <div class="form-group">
+                        <label class="form-label">Mật khẩu</label>
+                        <input type="password" class="form-input" name="password" placeholder="Nhập mật khẩu" required>
+                </div>
+            </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeSwitchAccountModal()">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="switchAccount()">Chuyển</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Notification Modal -->
+    <div class="global-notification-overlay" id="globalNotificationModal" style="display: none;">
+        <div class="global-notification" id="globalNotification">
+            <div class="global-notification-header">
+                <div class="global-notification-title">
+                    <div class="global-notification-icon" id="globalNotificationIcon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <span id="globalNotificationTitle">Thông báo</span>
+                </div>
+                <button class="global-notification-close" onclick="closePopup()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="global-notification-body">
+                <p class="global-notification-message" id="globalNotificationMessage">Nội dung thông báo</p>
+            </div>
+            <div class="global-notification-footer" id="globalNotificationFooter">
+                <button type="button" class="global-notification-btn primary" onclick="closePopup()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Sidebar dropdown functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdownBtns = document.querySelectorAll('.dropdown-btn');
+            
+            dropdownBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const dropdown = this.getAttribute('data-dropdown');
+          const container = this.nextElementSibling;
+                    
+                    // Close other dropdowns
+                    document.querySelectorAll('.dropdown-container').forEach(c => {
+                        if (c !== container) {
+                            c.style.display = 'none';
+                        }
+                    });
+                    
+                    // Toggle current dropdown
+                    if (container.style.display === 'block') {
+                        container.style.display = 'none';
+                    } else {
+                        container.style.display = 'block';
+                    }
+                });
+            });
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown-btn') && !e.target.closest('.dropdown-container')) {
+                    document.querySelectorAll('.dropdown-container').forEach(c => {
+                        c.style.display = 'none';
+                    });
+                }
+            });
+        });
+
+        // User menu functionality
+        function toggleUserMenu() {
+            const userMenu = document.getElementById('userMenu');
+            if (userMenu.style.display === 'block') {
+                userMenu.style.display = 'none';
+            } else {
+                userMenu.style.display = 'block';
+            }
+        }
+
+        // Close user menu when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.user-account-section')) {
+                document.getElementById('userMenu').style.display = 'none';
+            }
+        });
+
+        // Switch account modal
+        function openSwitchAccountModal() {
+            document.getElementById('switchAccountModal').style.display = 'flex';
+            document.getElementById('userMenu').style.display = 'none';
+        }
+
+        function closeSwitchAccountModal() {
+            document.getElementById('switchAccountModal').style.display = 'none';
+            document.getElementById('switchAccountForm').reset();
+        }
+
+        function switchAccount() {
+            const form = document.getElementById('switchAccountForm');
+            const formData = new FormData(form);
+            
+            // Implementation for switching account
+            console.log('Switching account...');
+            closeSwitchAccountModal();
+        }
+
+        // Logout functionality
+        function logout() {
+            // Clear sessionStorage
+            sessionStorage.removeItem('access_token');
+            sessionStorage.removeItem('user_id');
+            sessionStorage.removeItem('username');
+            
+            // Redirect to login
+            window.location.href = '/login';
+        }
+
+        // Update username from sessionStorage
+      function updateUsername() {
+        const usernameElement = document.getElementById('username-display');
+        if (usernameElement) {
+                const currentUsername = sessionStorage.getItem('username');
+                if (currentUsername && currentUsername.trim() !== '') {
+            usernameElement.textContent = currentUsername;
+          } else {
+            usernameElement.textContent = 'Khách';
+                }
+            }
+        }
+
+        // Check authentication
+        function checkAuthentication() {
+            const token = sessionStorage.getItem('access_token');
+            const userId = sessionStorage.getItem('user_id');
+            
+            if (!token || !userId) {
+                window.location.href = '/login';
+                return false;
+            }
+            
+            updateUsername();
+            return true;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!window.location.pathname.includes('/login')) {
+                checkAuthentication();
+            }
+        });
+
+        // Close modal when clicking overlay
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal-overlay')) {
+                const modal = e.target;
+                if (shouldConfirmClose(modal)) {
+                    showConfirm('Xác nhận đóng', 'Bạn có chắc chắn muốn đóng popup này không? Dữ liệu đã nhập sẽ bị mất.', 
+                        function() { modal.style.display = 'none'; });
+          } else {
+                    modal.style.display = 'none';
+                }
+            }
+        });
+
+        // Close modal with ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modals = document.querySelectorAll('.modal-overlay');
+                modals.forEach(modal => {
+                    if (modal.style.display === 'flex') {
+                        if (shouldConfirmClose(modal)) {
+                            showConfirm('Xác nhận đóng', 'Bạn có chắc chắn muốn đóng popup này không? Dữ liệu đã nhập sẽ bị mất.', 
+                                function() { modal.style.display = 'none'; });
+            } else { 
+                            modal.style.display = 'none';
+                        }
+                    }
+                });
+            }
+        });
+
+        // Global Notification System
+        function openPopup() {
+            document.getElementById('globalNotificationModal').style.display = 'flex';
+        }
+
+        function closePopup() {
+            document.getElementById('globalNotificationModal').style.display = 'none';
+        }
+
+        function showSuccessModal(title, message, autoClose = true) {
+            const modal = document.getElementById('globalNotification');
+            const icon = document.getElementById('globalNotificationIcon');
+            const titleEl = document.getElementById('globalNotificationTitle');
+            const messageEl = document.getElementById('globalNotificationMessage');
+            const footer = document.getElementById('globalNotificationFooter');
+            
+            modal.className = 'global-notification success';
+            icon.innerHTML = '<i class="fas fa-check-circle"></i>';
+            titleEl.textContent = title || 'Thành công';
+            messageEl.textContent = message;
+            footer.innerHTML = '<button type="button" class="global-notification-btn primary" onclick="closePopup()">Đóng</button>';
+            
+            openPopup();
+            
+            if (autoClose) {
+                setTimeout(closePopup, 3000);
+            }
+        }
+
+        function showErrorModal(title, message, autoClose = true) {
+            const modal = document.getElementById('globalNotification');
+            const icon = document.getElementById('globalNotificationIcon');
+            const titleEl = document.getElementById('globalNotificationTitle');
+            const messageEl = document.getElementById('globalNotificationMessage');
+            const footer = document.getElementById('globalNotificationFooter');
+            
+            modal.className = 'global-notification error';
+            icon.innerHTML = '<i class="fas fa-exclamation-circle"></i>';
+            titleEl.textContent = title || 'Lỗi';
+            messageEl.textContent = message;
+            footer.innerHTML = '<button type="button" class="global-notification-btn primary" onclick="closePopup()">Đóng</button>';
+            
+            openPopup();
+            
+            if (autoClose) {
+                setTimeout(closePopup, 3000);
+            }
+        }
+
+        function showInfoModal(title, message, autoClose = true) {
+            const modal = document.getElementById('globalNotification');
+            const icon = document.getElementById('globalNotificationIcon');
+            const titleEl = document.getElementById('globalNotificationTitle');
+            const messageEl = document.getElementById('globalNotificationMessage');
+            const footer = document.getElementById('globalNotificationFooter');
+            
+            modal.className = 'global-notification info';
+            icon.innerHTML = '<i class="fas fa-info-circle"></i>';
+            titleEl.textContent = title || 'Thông tin';
+            messageEl.textContent = message;
+            footer.innerHTML = '<button type="button" class="global-notification-btn primary" onclick="closePopup()">Đóng</button>';
+            
+            openPopup();
+            
+            if (autoClose) {
+                setTimeout(closePopup, 3000);
+            }
+        }
+
+        function showConfirm(title, message, onConfirm, onCancel = null) {
+            const modal = document.getElementById('globalNotification');
+            const icon = document.getElementById('globalNotificationIcon');
+            const titleEl = document.getElementById('globalNotificationTitle');
+            const messageEl = document.getElementById('globalNotificationMessage');
+            const footer = document.getElementById('globalNotificationFooter');
+            
+            modal.className = 'global-notification warning';
+            icon.innerHTML = '<i class="fas fa-question-circle"></i>';
+            titleEl.textContent = title || 'Xác nhận';
+            messageEl.textContent = message;
+            
+            // Create buttons with proper event listeners
+            footer.innerHTML = `
+                <button type="button" class="global-notification-btn secondary" id="confirmCancelBtn">Hủy</button>
+                <button type="button" class="global-notification-btn danger" id="confirmOkBtn">Xác nhận</button>
+            `;
+            
+            // Add event listeners
+            document.getElementById('confirmCancelBtn').onclick = function() {
+                closePopup();
+                if (onCancel && typeof onCancel === 'function') {
+                    onCancel();
+                }
+            };
+            
+            document.getElementById('confirmOkBtn').onclick = function() {
+                closePopup();
+                if (onConfirm && typeof onConfirm === 'function') {
+                    onConfirm();
+                }
+            };
+            
+            openPopup();
+        }
+
+        // Override native alert function
+        window.alert = function(message) {
+            showInfoModal('Thông báo', message);
+        };
+
+        // Close notification when clicking overlay
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('global-notification-overlay')) {
+                closePopup();
+            }
+        });
+
+        // Close notification with ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('globalNotificationModal').style.display === 'flex') {
+                closePopup();
+            }
+        });
+
+        // Auto-wrap delete buttons with confirmation - DISABLED
+        function wrapDeleteButtons() {
+            // Disabled to prevent double confirmation popups
+            return;
+        }
+
+        // Use MutationObserver to watch for dynamically added delete buttons
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList') {
+                    wrapDeleteButtons();
+                }
+            });
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        // Wrap existing delete buttons on page load
+      document.addEventListener('DOMContentLoaded', function() {
+            wrapDeleteButtons();
+        });
+
+        // Patch fetch to show success messages for DELETE requests
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            return originalFetch.apply(this, args).then(response => {
+                if (args[1] && args[1].method === 'DELETE' && response.ok) {
+                    showSuccessModal('Thành công', 'Xóa thành công!');
+                }
+                return response;
+            });
+        };
+
+        // Modal confirmation system
+        const modalStates = new Map(); // Store original states of modals
+        
+        function shouldConfirmClose(modal) {
+            const modalId = modal.id;
+            if (!modalId) return false;
+            
+            // Check if this is a form modal
+            const form = modal.querySelector('form');
+            if (!form) return false;
+            
+            // Get current form data
+            const currentData = getFormData(form);
+            
+            // Get original data if exists
+            const originalData = modalStates.get(modalId);
+            
+            // If no original data, check if form has any data
+            if (!originalData) {
+                return hasFormData(currentData);
+            }
+            
+            // Compare current data with original data
+            return !isFormDataEqual(currentData, originalData);
+        }
+        
+        function hasFormData(data) {
+            for (const key in data) {
+                if (data[key] && data[key].toString().trim() !== '') {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        function isFormDataEqual(data1, data2) {
+            const keys1 = Object.keys(data1);
+            const keys2 = Object.keys(data2);
+            
+            if (keys1.length !== keys2.length) return false;
+            
+            for (const key of keys1) {
+                if (data1[key] !== data2[key]) return false;
+            }
+            
+            return true;
+        }
+        
+        function getFormData(form) {
+            const formData = new FormData(form);
+            const data = {};
+            
+            for (const [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            
+            // Also check hidden inputs for money fields
+            const hiddenInputs = form.querySelectorAll('input[type="hidden"]');
+            hiddenInputs.forEach(input => {
+                if (input.name && input.value) {
+                    data[input.name] = input.value;
+                }
+            });
+            
+            return data;
+        }
+        
+        function storeModalState(modalId, form) {
+            if (form) {
+                const data = getFormData(form);
+                modalStates.set(modalId, data);
+            }
+        }
+        
+        function clearModalState(modalId) {
+            modalStates.delete(modalId);
+        }
+        
+        // Enhanced modal close functions
+        function closeModalWithConfirmation(modalId, onConfirm = null) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            
+            if (shouldConfirmClose(modal)) {
+                showConfirm('Xác nhận đóng', 'Bạn có chắc chắn muốn đóng popup này không? Dữ liệu đã nhập sẽ bị mất.', 
+                    function() { 
+                        modal.style.display = 'none';
+                        clearModalState(modalId);
+                        if (onConfirm) onConfirm();
+                    });
+            } else {
+          modal.style.display = 'none';
+                clearModalState(modalId);
+                if (onConfirm) onConfirm();
+            }
+        }
+        
+        // Override modal close buttons
+        function enhanceModalCloseButtons() {
+            document.querySelectorAll('.modal-close').forEach(button => {
+                if (!button.hasAttribute('data-enhanced')) {
+                    button.setAttribute('data-enhanced', 'true');
+                    const originalOnclick = button.getAttribute('onclick');
+                    if (originalOnclick) {
+                        button.setAttribute('onclick', `closeModalWithConfirmation('${button.closest('.modal-overlay').id}')`);
+                    }
+                }
+            });
+        }
+        
+        // Watch for dynamically added modals
+        const modalObserver = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList') {
+                    enhanceModalCloseButtons();
+                }
+            });
+        });
+        
+        modalObserver.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        
+        // Enhance existing modal close buttons on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            enhanceModalCloseButtons();
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 
