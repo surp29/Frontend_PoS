@@ -112,14 +112,9 @@ def account_management():
     """Trang quản lý tài khoản"""
     return render_template('account_management.html')
 
-<<<<<<< HEAD
 # Vercel entry point
 if __name__ == '__main__':
     print("🚀 Starting PoS Frontend on port", Config.FRONTEND_PORT)
-=======
-if __name__ == '__main__':
-    print("🚀 Starting PhanMemKeToan Frontend on port", Config.FRONTEND_PORT)
->>>>>>> 0b182c014de82f61c42a00811545f62b3f9077e5
     print("🌐 Frontend will be available at: http://localhost:" + str(Config.FRONTEND_PORT))
     print("🔗 Backend API: " + Config.BACKEND_URL)
     print("💡 Use Ctrl+C to stop the server")
