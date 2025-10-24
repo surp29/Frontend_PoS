@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - PhanMemKeToan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-box">
+      <div class="logo">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="PhanMemKeToan Logo">
+      </div>
+      <h2>Đăng nhập hệ thống</h2>
+      <form id="loginForm">
+        <div class="input-group">
+          <input type="text" id="username" name="username" placeholder="Tên đăng nhập" required>
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="input-group">
+          <input type="password" id="password" name="password" placeholder="Mật khẩu" required>
+          <i class="fas fa-lock"></i>
+        </div>
+        <button type="submit">Đăng nhập</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Login JavaScript -->
+  <script>
+  document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    
+    if (!username || !password) {
+      return; // Không hiển thị thông báo gì
+    }
+    
+    try {
+      const response = await fetch('{{ BACKEND_URL }}/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: username,
+          password: password
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Lưu token vào sessionStorage
+        sessionStorage.setItem('access_token', data.access_token);
+        sessionStorage.setItem('user_id', data.user_id);
+        sessionStorage.setItem('username', data.username);
+        
+        // Chuyển hướng ngay lập tức, không hiển thị thông báo thành công
+        window.location.href = '/general-diary';
+      } else {
+        // Xử lý các lỗi cụ thể từ backend
+        handleLoginError(data, response.status);
+      }
+    } catch (error) {
+      // Không hiển thị thông báo lỗi kết nối
+      console.error('Login error:', error);
+    }
+  });
+  
+  function handleLoginError(data, statusCode) {
+    let errorMessage = '';
+    let errorType = 'error';
+    
+    // Xử lý các lỗi cụ thể từ backend
+    if (statusCode === 401) {
+      if (data.detail && data.detail.includes('password')) {
+        errorMessage = 'Sai tài khoản hoặc mật khẩu';
+      } else if (data.detail && data.detail.includes('username')) {
+        errorMessage = 'Tài khoản không tồn tại';
+      } else {
+        errorMessage = 'Sai tài khoản hoặc mật khẩu';
+      }
+    } else if (statusCode === 403) {
+      errorMessage = 'Tài khoản đã bị vô hiệu hóa';
+      errorType = 'warning';
+    } else if (statusCode === 404) {
+      errorMessage = 'Tài khoản không tồn tại';
+    } else {
+      errorMessage = data.detail || 'Đăng nhập thất bại';
+    }
+    
+    // Hiển thị popup lỗi
+    showErrorPopup(errorMessage, errorType);
+  }
+  
+  function showErrorPopup(message, type = 'error') {
+    // Xóa popup cũ nếu có
+    const existingPopup = document.querySelector('.error-popup');
+    if (existingPopup) {
+      existingPopup.remove();
+    }
+    
+    // Tạo popup overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'error-popup-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 10000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.3s ease-out;
+    `;
+    
+    // Tạo popup content
+    const popup = document.createElement('div');
+    popup.className = 'error-popup';
+    popup.style.cssText = `
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      animation: slideIn 0.3s ease-out;
+      position: relative;
+    `;
+    
+    // Icon dựa trên loại lỗi
+    const iconClass = type === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-times-circle';
+    const iconColor = type === 'warning' ? '#f39c12' : '#e74c3c';
+    
+    popup.innerHTML = `
+      <div style="margin-bottom: 16px;">
+        <i class="${iconClass}" style="font-size: 48px; color: ${iconColor};"></i>
+      </div>
+      <h3 style="margin: 0 0 12px 0; color: #2c3e50; font-size: 18px; font-weight: 600;">
+        ${message}
+      </h3>
+      <div style="margin-top: 20px;">
+        <button onclick="closeErrorPopup()" style="
+          background: ${iconColor};
+          color: white;
+          border: none;
+          padding: 10px 24px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 500;
+          transition: all 0.2s ease;
+        " onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+          Đóng
+        </button>
+      </div>
+    `;
+    
+    // Thêm CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+      @keyframes slideIn {
+        from { 
+          opacity: 0;
+          transform: translateY(-20px) scale(0.95);
+        }
+        to { 
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    // Thêm vào DOM
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
+    
+    // Đóng khi click vào overlay
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) {
+        closeErrorPopup();
+      }
+    });
+    
+    // Đóng khi nhấn ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeErrorPopup();
+      }
+    });
+    
+    // Tự động đóng sau 3 giây
+    setTimeout(() => {
+      closeErrorPopup();
+    }, 3000);
+  }
+  
+  function closeErrorPopup() {
+    const popup = document.querySelector('.error-popup-overlay');
+    if (popup) {
+      popup.style.animation = 'fadeOut 0.3s ease-out';
+      setTimeout(() => {
+        popup.remove();
+      }, 300);
+    }
+  }
+  </script>
+</body>
+</html>
