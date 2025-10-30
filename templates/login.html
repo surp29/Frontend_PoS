@@ -58,12 +58,19 @@
       const data = await response.json();
       
       if (response.ok) {
-        // Lưu token vào sessionStorage
+        // Lưu token vào sessionStorage (phía client nếu cần)
         sessionStorage.setItem('access_token', data.access_token);
         sessionStorage.setItem('user_id', data.user_id);
         sessionStorage.setItem('username', data.username);
-        
-        // Chuyển hướng ngay lập tức, không hiển thị thông báo thành công
+
+        // Gọi endpoint nội bộ để set Flask session phía server
+        await fetch('/session/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: data.user_id, username: data.username })
+        });
+
+        // Chuyển trang sau khi session đã được set
         window.location.href = '/general-diary';
       } else {
         // Xử lý các lỗi cụ thể từ backend

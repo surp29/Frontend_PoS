@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from config import Config
 from functools import wraps
 
@@ -45,6 +45,23 @@ def logout():
     session.clear()
     flash('Bạn đã đăng xuất thành công', 'success')
     return redirect(url_for('login'))
+
+
+@app.post('/session/login')
+def session_login():
+    """Thiết lập Flask session sau khi backend xác thực thành công."""
+    try:
+        data = request.get_json(force=True)
+        user_id = data.get('user_id')
+        username = data.get('username')
+        if not user_id:
+            return jsonify({'ok': False, 'error': 'missing user_id'}), 400
+        session['user_id'] = user_id
+        if username:
+            session['username'] = username
+        return jsonify({'ok': True})
+    except Exception:
+        return jsonify({'ok': False}), 400
 
 @app.route('/products')
 @login_required
