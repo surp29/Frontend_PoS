@@ -1,0 +1,806 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý khách hàng - PhanMemKeToan{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-users"></i> Quản lý khách hàng
+{% endblock %}
+
+{% block page_description %}
+Quản lý thông tin khách hàng, theo dõi tài khoản và trạng thái hoạt động
+{% endblock %}
+
+{% block header_actions %}
+<button class="btn btn-primary" onclick="openAddCustomerModal()">
+    <i class="fas fa-plus"></i>
+    Thêm khách hàng
+</button>
+{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalCustomers">0</div>
+            <div class="stat-label">Tổng khách hàng</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="activeCustomers">0</div>
+            <div class="stat-label">Đang hoạt động</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-ban"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="inactiveCustomers">0</div>
+            <div class="stat-label">Không hoạt động</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-envelope"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="customersWithEmail">0</div>
+            <div class="stat-label">Có email</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <div class="filter-row">
+        <div class="form-group">
+            <label class="form-label">Tìm kiếm</label>
+            <div class="search-input">
+                <i class="fas fa-search"></i>
+                <input type="text" class="form-input" id="searchCustomer" placeholder="Tìm theo tên, email, số điện thoại...">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Trạng thái</label>
+            <select class="form-select" id="customerStatusFilter">
+                <option value="">Tất cả trạng thái</option>
+                <option value="true">Hoạt động</option>
+                <option value="false">Không hoạt động</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <button class="btn btn-secondary" onclick="clearCustomerFilters()">
+                <i class="fas fa-times"></i>
+                Xóa bộ lọc
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs-container" style="margin-top: var(--spacing-4);">
+    <div class="tabs">
+        <button class="tab active" data-tab="list">Danh sách</button>
+        <button class="tab" data-tab="debts">Công nợ</button>
+        <button class="tab" data-tab="leaderboard">Xếp hạng</button>
+    </div>
+</div>
+
+<!-- Customer Table (List Tab) -->
+<div id="customersListSection" class="table-container">
+    <div class="card">
+        <div class="card-header">
+            <h3>Danh sách khách hàng</h3>
+        </div>
+        <div class="card-body p-0">
+            <table class="table" id="customersTable">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên khách hàng</th>
+                        <th>Tk nợ</th>
+                        <th>Tk có</th>
+                        <th>Email</th>
+                        <th>Số điện thoại</th>
+                        <th>Địa chỉ</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="customersTableBody">
+                    <!-- Data will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+<div class="pagination" id="customersPagination">
+    <!-- Pagination will be generated here -->
+</div>
+
+<!-- Debts Tab -->
+<div id="debtsSection" class="table-container" style="display: none;">
+    <div class="card">
+        <div class="card-header">
+            <h3>Công nợ khách hàng</h3>
+        </div>
+        <div class="card-body p-0">
+            <table class="table" id="debtsTable">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên khách hàng</th>
+                        <th>Số đơn</th>
+                        <th>Tổng SL mua</th>
+                        <th>Tổng giá trị</th>
+                        <th>Công nợ</th>
+                    </tr>
+                </thead>
+                <tbody id="debtsTableBody">
+                    <!-- Debts data -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Leaderboard Tab -->
+<div id="leaderboardSection" class="table-container" style="display: none;">
+    <div class="card">
+        <div class="card-header">
+            <h3>Bảng xếp hạng khách hàng theo số lượng mua</h3>
+        </div>
+        <div class="card-body p-0">
+            <table class="table" id="leaderboardTable">
+                <thead>
+                    <tr>
+                        <th>Hạng</th>
+                        <th>Tên khách hàng</th>
+                        <th>Tổng SL mua</th>
+                        <th>Số đơn</th>
+                        <th>Tổng giá trị</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardTableBody">
+                    <!-- Leaderboard data -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Customer Modal -->
+<div class="modal-overlay" id="addCustomerModal" style="display: none;">
+    <div class="modal modal-horizontal">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-plus"></i> Thêm khách hàng mới</h3>
+            <button class="modal-close" onclick="closeAddCustomerModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="addCustomerForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tên khách hàng *</label>
+                        <input type="text" class="form-input" name="ten_tk" required placeholder="Nhập tên khách hàng">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" name="email" placeholder="Nhập email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="tel" class="form-input" name="so_dt" placeholder="Nhập số điện thoại">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Trạng thái</label>
+                        <select class="form-select" name="trang_thai">
+                            <option value="true">Hoạt động</option>
+                            <option value="false">Không hoạt động</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tk nợ</label>
+                        <input type="text" class="form-input" name="tk_no" placeholder="Nhập tài khoản nợ">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tk có</label>
+                        <input type="text" class="form-input" name="tk_co" placeholder="Nhập tài khoản có">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Địa chỉ</label>
+                    <textarea class="form-textarea" name="dia_chi" rows="3" placeholder="Nhập địa chỉ"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeAddCustomerModal()">Hủy</button>
+            <button type="button" class="btn btn-primary" onclick="createCustomer()">Tạo khách hàng</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Customer Modal -->
+<div class="modal-overlay" id="editCustomerModal" style="display: none;">
+    <div class="modal modal-horizontal">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-edit"></i> Chỉnh sửa khách hàng</h3>
+            <button class="modal-close" onclick="closeEditCustomerModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="editCustomerForm">
+                <input type="hidden" name="id">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tên khách hàng *</label>
+                        <input type="text" class="form-input" name="ten_tk" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="tel" class="form-input" name="so_dt">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Trạng thái</label>
+                        <select class="form-select" name="trang_thai">
+                            <option value="true">Hoạt động</option>
+                            <option value="false">Không hoạt động</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tk nợ</label>
+                        <input type="text" class="form-input" name="tk_no">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tk có</label>
+                        <input type="text" class="form-input" name="tk_co">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Địa chỉ</label>
+                    <textarea class="form-textarea" name="dia_chi" rows="3"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeEditCustomerModal()">Hủy</button>
+            <button type="button" class="btn btn-primary" onclick="updateCustomer()">Cập nhật</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteCustomerModal" style="display: none;">
+    <div class="modal modal-small">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Xác nhận xóa</h3>
+            <button class="modal-close" onclick="closeDeleteCustomerModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>Bạn có chắc chắn muốn xóa khách hàng này không?</p>
+            <p class="text-gray-600">Hành động này không thể hoàn tác.</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteCustomerModal()">Hủy</button>
+            <button type="button" class="btn btn-danger" onclick="confirmDeleteCustomer()">Xóa</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Global variables
+let customersData = [];
+let filteredCustomers = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+let deleteCustomerId = null;
+let ordersData = [];
+let currentTab = 'list';
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadCustomersData();
+    loadOrdersData();
+    setupEventListeners();
+    setupTabs();
+});
+
+// Setup event listeners
+function setupEventListeners() {
+    document.getElementById('searchCustomer').addEventListener('input', debounce(filterCustomers, 300));
+    document.getElementById('customerStatusFilter').addEventListener('change', filterCustomers);
+}
+
+// Tabs setup
+function setupTabs() {
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+    });
+}
+
+function switchTab(tab) {
+    currentTab = tab;
+    // Toggle active state
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+
+    // Show/hide sections
+    document.getElementById('customersListSection').style.display = (tab === 'list') ? '' : 'none';
+    document.getElementById('customersPagination').style.display = (tab === 'list') ? '' : 'none';
+    document.getElementById('debtsSection').style.display = (tab === 'debts') ? '' : 'none';
+    document.getElementById('leaderboardSection').style.display = (tab === 'leaderboard') ? '' : 'none';
+
+    if (tab === 'debts') {
+        renderDebts();
+    } else if (tab === 'leaderboard') {
+        renderLeaderboard();
+    }
+}
+
+// Load orders data
+async function loadOrdersData() {
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/orders/');
+        if (response.ok) {
+            const data = await response.json();
+            // Normalize array response
+            if (Array.isArray(data)) {
+                ordersData = data;
+            } else if (data.orders && Array.isArray(data.orders)) {
+                ordersData = data.orders;
+            } else {
+                ordersData = [];
+            }
+        }
+    } catch (e) {
+        console.error('Error loading orders:', e);
+    }
+}
+
+// Compute aggregates by customer
+function computeCustomerAggregates() {
+    const aggregates = new Map();
+
+    ordersData.forEach(order => {
+        const customerName = order.customer_name || order.khach_hang || 'Khách vãng lai';
+        const items = Array.isArray(order.items) ? order.items : (order.chi_tiet || []);
+        const total = Number(order.total || order.tong_tien || 0);
+        const paid = Number(order.paid || order.da_thanh_toan || 0);
+        const debt = Math.max(0, total - paid);
+
+        let totalQty = 0;
+        items.forEach(it => {
+            const qty = Number(it.quantity || it.so_luong || 0);
+            totalQty += qty;
+        });
+
+        if (!aggregates.has(customerName)) {
+            aggregates.set(customerName, {
+                customerName,
+                orderCount: 0,
+                totalQuantity: 0,
+                totalAmount: 0,
+                totalDebt: 0
+            });
+        }
+
+        const agg = aggregates.get(customerName);
+        agg.orderCount += 1;
+        agg.totalQuantity += totalQty;
+        agg.totalAmount += total;
+        agg.totalDebt += debt;
+    });
+
+    return Array.from(aggregates.values());
+}
+
+// Render debts table
+function renderDebts() {
+    const tbody = document.getElementById('debtsTableBody');
+    const rows = computeCustomerAggregates()
+        .filter(r => r.totalDebt > 0)
+        .sort((a, b) => b.totalDebt - a.totalDebt);
+
+    if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: var(--spacing-4); color: var(--gray-600);">Chưa có công nợ</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = rows.map((r, idx) => `
+        <tr>
+            <td>${idx + 1}</td>
+            <td><strong>${r.customerName}</strong></td>
+            <td>${r.orderCount}</td>
+            <td>${r.totalQuantity}</td>
+            <td>${(r.totalAmount || 0).toLocaleString('vi-VN')} VNĐ</td>
+            <td><strong style="color: var(--danger-color);">${(r.totalDebt || 0).toLocaleString('vi-VN')} VNĐ</strong></td>
+        </tr>
+    `).join('');
+}
+
+// Render leaderboard (by total quantity)
+function renderLeaderboard() {
+    const tbody = document.getElementById('leaderboardTableBody');
+    const rows = computeCustomerAggregates()
+        .sort((a, b) => b.totalQuantity - a.totalQuantity)
+        .slice(0, 100);
+
+    if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: var(--spacing-4); color: var(--gray-600);">Chưa có dữ liệu xếp hạng</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = rows.map((r, idx) => `
+        <tr>
+            <td>${idx + 1}</td>
+            <td><strong>${r.customerName}</strong></td>
+            <td>${r.totalQuantity}</td>
+            <td>${r.orderCount}</td>
+            <td>${(r.totalAmount || 0).toLocaleString('vi-VN')} VNĐ</td>
+        </tr>
+    `).join('');
+}
+
+// Load customers data
+async function loadCustomersData() {
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/accounts/');
+        if (response.ok) {
+            customersData = await response.json();
+            filteredCustomers = [...customersData];
+            updateStatistics();
+            updateCustomerTable();
+            updateCustomerPagination();
+        } else {
+            console.error('Failed to load customers');
+        }
+    } catch (error) {
+        console.error('Error loading customers:', error);
+    }
+}
+
+// Update statistics
+function updateStatistics() {
+    const totalCustomers = customersData.length;
+    const activeCustomers = customersData.filter(c => c.trang_thai === true).length;
+    const inactiveCustomers = customersData.filter(c => c.trang_thai === false).length;
+    const customersWithEmail = customersData.filter(c => c.email).length;
+    
+    document.getElementById('totalCustomers').textContent = totalCustomers;
+    document.getElementById('activeCustomers').textContent = activeCustomers;
+    document.getElementById('inactiveCustomers').textContent = inactiveCustomers;
+    document.getElementById('customersWithEmail').textContent = customersWithEmail;
+}
+
+// Filter customers
+function filterCustomers() {
+    const searchTerm = document.getElementById('searchCustomer').value.toLowerCase();
+    const statusFilter = document.getElementById('customerStatusFilter').value;
+    
+    filteredCustomers = customersData.filter(customer => {
+        const matchesSearch = !searchTerm || 
+                             (customer.ten_tk && customer.ten_tk.toLowerCase().includes(searchTerm)) ||
+                             (customer.email && customer.email.toLowerCase().includes(searchTerm)) ||
+                             (customer.so_dt && customer.so_dt.toLowerCase().includes(searchTerm));
+        
+        const matchesStatus = !statusFilter || customer.trang_thai.toString() === statusFilter;
+        
+        return matchesSearch && matchesStatus;
+    });
+    
+    currentPage = 1;
+    updateCustomerTable();
+    updateCustomerPagination();
+}
+
+// Clear filters
+function clearCustomerFilters() {
+    document.getElementById('searchCustomer').value = '';
+    document.getElementById('customerStatusFilter').value = '';
+    
+    filteredCustomers = [...customersData];
+    currentPage = 1;
+    updateCustomerTable();
+    updateCustomerPagination();
+}
+
+// Update customer table
+function updateCustomerTable() {
+    const tbody = document.getElementById('customersTableBody');
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageCustomers = filteredCustomers.slice(startIndex, endIndex);
+    
+    tbody.innerHTML = pageCustomers.map((customer, index) => `
+        <tr>
+            <td>${startIndex + index + 1}</td>
+            <td><strong>${customer.ten_tk || '-'}</strong></td>
+            <td>${customer.tk_no || '-'}</td>
+            <td>${customer.tk_co || '-'}</td>
+            <td>${customer.email || '-'}</td>
+            <td>${customer.so_dt || '-'}</td>
+            <td>${customer.dia_chi || '-'}</td>
+            <td>${getStatusBadge(customer.trang_thai)}</td>
+            <td>
+                <div class="table-actions">
+                    <button class="btn btn-sm btn-primary" onclick="editCustomer(${customer.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteCustomer(${customer.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Update pagination
+function updateCustomerPagination() {
+    const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+    const pagination = document.getElementById('customersPagination');
+    
+    if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+    }
+    
+    pagination.innerHTML = generatePaginationHTML(currentPage, totalPages);
+}
+
+// Generate pagination HTML
+function generatePaginationHTML(currentPage, totalPages) {
+    let paginationHTML = '';
+    
+    // Previous button
+    paginationHTML += `
+        <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+    `;
+    
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+    
+    if (startPage > 1) {
+        paginationHTML += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`;
+        if (startPage > 2) {
+            paginationHTML += `<span class="text-gray-500">...</span>`;
+        }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+            <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">
+                ${i}
+            </button>
+        `;
+    }
+    
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            paginationHTML += `<span class="text-gray-500">...</span>`;
+        }
+        paginationHTML += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+    }
+    
+    // Next button
+    paginationHTML += `
+        <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    `;
+    
+    return paginationHTML;
+}
+
+// Go to page
+function goToPage(page) {
+    const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+    if (page >= 1 && page <= totalPages) {
+        currentPage = page;
+        updateCustomerTable();
+        updateCustomerPagination();
+    }
+}
+
+// Modal functions
+function openAddCustomerModal() {
+    document.getElementById('addCustomerModal').style.display = 'flex';
+    document.getElementById('addCustomerForm').reset();
+    storeModalState('addCustomerModal', document.getElementById('addCustomerForm'));
+}
+
+function closeAddCustomerModal() {
+    document.getElementById('addCustomerModal').style.display = 'none';
+    clearModalState('addCustomerModal');
+}
+
+function editCustomer(id) {
+    const customer = customersData.find(c => c.id === id);
+    if (customer) {
+        const form = document.getElementById('editCustomerForm');
+        form.querySelector('input[name="id"]').value = customer.id;
+        form.querySelector('input[name="ten_tk"]').value = customer.ten_tk || '';
+        form.querySelector('input[name="email"]').value = customer.email || '';
+        form.querySelector('input[name="so_dt"]').value = customer.so_dt || '';
+        form.querySelector('select[name="trang_thai"]').value = (customer.trang_thai || false).toString();
+        form.querySelector('input[name="tk_no"]').value = customer.tk_no || '';
+        form.querySelector('input[name="tk_co"]').value = customer.tk_co || '';
+        form.querySelector('textarea[name="dia_chi"]').value = customer.dia_chi || '';
+        
+        storeModalState('editCustomerModal', form);
+        document.getElementById('editCustomerModal').style.display = 'flex';
+    }
+}
+
+function closeEditCustomerModal() {
+    document.getElementById('editCustomerModal').style.display = 'none';
+    clearModalState('editCustomerModal');
+}
+
+function deleteCustomer(id) {
+    deleteCustomerId = id;
+    document.getElementById('deleteCustomerModal').style.display = 'flex';
+}
+
+function closeDeleteCustomerModal() {
+    document.getElementById('deleteCustomerModal').style.display = 'none';
+    deleteCustomerId = null;
+}
+
+// CRUD operations
+async function createCustomer() {
+    const form = document.getElementById('addCustomerForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    data.trang_thai = data.trang_thai === 'true';
+    
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/accounts/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            document.getElementById('addCustomerModal').style.display = 'none';
+            clearModalState('addCustomerModal');
+            loadCustomersData();
+            showSuccessMessage('Tạo khách hàng thành công!');
+        } else {
+            const error = await response.json();
+            showErrorMessage(error.detail || 'Có lỗi xảy ra khi tạo khách hàng');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi tạo khách hàng');
+    }
+}
+
+async function updateCustomer() {
+    const form = document.getElementById('editCustomerForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    const id = data.id;
+    delete data.id;
+    data.trang_thai = data.trang_thai === 'true';
+    
+    try {
+        const response = await fetch(`{{ BACKEND_URL }}/api/accounts/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            document.getElementById('editCustomerModal').style.display = 'none';
+            clearModalState('editCustomerModal');
+            loadCustomersData();
+            showSuccessMessage('Cập nhật khách hàng thành công!');
+        } else {
+            const error = await response.json();
+            showErrorMessage(error.detail || 'Có lỗi xảy ra khi cập nhật khách hàng');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi cập nhật khách hàng');
+    }
+}
+
+async function confirmDeleteCustomer() {
+    if (!deleteCustomerId) return;
+    
+    try {
+        const response = await fetch(`{{ BACKEND_URL }}/api/accounts/${deleteCustomerId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
+        
+        if (response.ok) {
+            closeDeleteCustomerModal();
+            loadCustomersData();
+            showSuccessMessage('Xóa khách hàng thành công!');
+        } else {
+            const error = await response.json();
+            showErrorMessage(error.detail || 'Có lỗi xảy ra khi xóa khách hàng');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi xóa khách hàng');
+    }
+}
+
+// Utility functions
+function getStatusBadge(status) {
+    if (status === true || status === 'true') {
+        return '<span class="badge badge-success">Hoạt động</span>';
+    } else {
+        return '<span class="badge badge-danger">Không hoạt động</span>';
+    }
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function showSuccessMessage(message) {
+    showSuccessModal('Thành công', message);
+}
+
+function showErrorMessage(message) {
+    showErrorModal('Lỗi', message);
+}
+</script>
+{% endblock %}
+

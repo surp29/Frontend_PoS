@@ -68,9 +68,6 @@ Quản lý danh sách sản phẩm, thêm mới, chỉnh sửa và theo dõi t�
             <label class="form-label">Nhóm sản phẩm</label>
             <select class="form-select" id="productGroupFilter">
                 <option value="">Tất cả nhóm</option>
-                {% for group in product_groups %}
-                <option value="{{ group }}">{{ group }}</option>
-                {% endfor %}
             </select>
 				</div>
         
@@ -155,7 +152,7 @@ Quản lý danh sách sản phẩm, thêm mới, chỉnh sửa và theo dõi t�
 			<div class="form-row">
 				<div class="form-group">
                         <label class="form-label">Mã sản phẩm *</label>
-                        <input type="text" class="form-input" name="code" required>
+                        <input type="text" class="form-input" name="code" required onblur="tryPopulateProductFromWarehouse(this.value)" oninput="debouncedTryPopulateFromWarehouse(this.value)">
 		</div>
                     <div class="form-group">
                         <label class="form-label">Tên sản phẩm *</label>
@@ -200,6 +197,12 @@ Quản lý danh sách sản phẩm, thêm mới, chỉnh sửa và theo dõi t�
                         <textarea class="form-textarea" name="description" rows="2" placeholder="Mô tả sản phẩm"></textarea>
 				</div>
 			</div>
+            
+            <div class="form-group">
+                <label class="form-label">Hình ảnh sản phẩm</label>
+                <input type="file" id="addProductImage" accept="image/*" onchange="previewImage(this, 'addProductImagePreview')">
+                <div id="addProductImagePreview" class="image-preview"></div>
+            </div>
             </form>
 					</div>
         <div class="modal-footer">
@@ -225,7 +228,7 @@ Quản lý danh sách sản phẩm, thêm mới, chỉnh sửa và theo dõi t�
 			<div class="form-row">
 				<div class="form-group">
                         <label class="form-label">Mã sản phẩm *</label>
-                        <input type="text" class="form-input" name="code" required>
+                        <input type="text" class="form-input" name="code" required onblur="tryPopulateProductFromWarehouse(this.value)" oninput="debouncedTryPopulateFromWarehouse(this.value)">
 					</div>
                     <div class="form-group">
                         <label class="form-label">Tên sản phẩm *</label>
@@ -270,6 +273,12 @@ Quản lý danh sách sản phẩm, thêm mới, chỉnh sửa và theo dõi t�
                         <textarea class="form-textarea" name="description" rows="2" placeholder="Mô tả sản phẩm"></textarea>
 				</div>
 			</div>
+            
+            <div class="form-group">
+                <label class="form-label">Hình ảnh sản phẩm</label>
+                <input type="file" id="editProductImage" accept="image/*" onchange="previewImage(this, 'editProductImagePreview')">
+                <div id="editProductImagePreview" class="image-preview"></div>
+            </div>
 		</form>
 			</div>
         <div class="modal-footer">
@@ -300,82 +309,6 @@ Quản lý danh sách sản phẩm, thêm mới, chỉnh sửa và theo dõi t�
 </div>
 {% endblock %}
 
-{% block extra_css %}
-<style>
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: var(--spacing-4);
-    margin-bottom: var(--spacing-6);
-}
-
-.stat-card {
-    background: white;
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-6);
-    box-shadow: var(--shadow-md);
-    border: 1px solid var(--gray-200);
-    display: flex;
-    align-items: center;
-    transition: all var(--transition-normal);
-}
-
-.stat-card:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
-}
-
-.stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: var(--radius-lg);
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: var(--spacing-4);
-}
-
-.stat-icon i {
-    font-size: var(--font-size-xl);
-    color: white;
-}
-
-.stat-content {
-    flex: 1;
-}
-
-.stat-number {
-    font-size: var(--font-size-2xl);
-    font-weight: 700;
-    color: var(--gray-900);
-    margin-bottom: var(--spacing-1);
-}
-
-.stat-label {
-    font-size: var(--font-size-sm);
-    color: var(--gray-600);
-    font-weight: 500;
-}
-
-.money-input-container {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-2);
-}
-
-.money-input-container .form-input {
-    flex: 1;
-}
-
-.currency-unit {
-    font-weight: 600;
-    color: var(--gray-600);
-    font-size: var(--font-size-sm);
-}
-</style>
-{% endblock %}
-
 {% block extra_js %}
 <script>
 // Global variables
@@ -384,10 +317,13 @@ let filteredProducts = [];
 let currentPage = 1;
 const itemsPerPage = 10;
 let deleteProductId = null;
+let warehouseDataForProducts = [];
+let warehouseCodeToItem = {};
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     loadProductsData();
+    loadWarehouseDataForProducts();
     setupEventListeners();
 });
 
@@ -408,6 +344,10 @@ async function loadProductsData() {
             const result = await response.json();
             productsData = result.products || [];
             filteredProducts = [...productsData];
+            
+            // Populate group filter
+            populateGroupFilter();
+            
             updateStatistics();
             updateProductsTable();
             updatePagination();
@@ -417,6 +357,29 @@ async function loadProductsData() {
     } catch (error) {
         console.error('Error loading products:', error);
     }
+}
+
+// Populate group filter dropdown
+function populateGroupFilter() {
+    const groupFilter = document.getElementById('productGroupFilter');
+    const groups = new Set();
+    
+    productsData.forEach(product => {
+        if (product.nhom_sp) {
+            groups.add(product.nhom_sp);
+        }
+    });
+    
+    // Clear existing options except "Tất cả nhóm"
+    groupFilter.innerHTML = '<option value="">Tất cả nhóm</option>';
+    
+    // Add group options
+    groups.forEach(group => {
+        const option = document.createElement('option');
+        option.value = group;
+        option.textContent = group;
+        groupFilter.appendChild(option);
+    });
 }
 
 // Update statistics
@@ -614,26 +577,34 @@ function closeDeleteProductModal() {
 async function addProduct() {
     const form = document.getElementById('addProductForm');
     const formData = new FormData(form);
-    const data = Object.fromEntries(formData);
     
     // Get values from hidden inputs for money fields
-    data.cost_price = parseInt(document.getElementById('add_cost_price').value || '0');
-    data.price = parseInt(document.getElementById('add_price').value || '0');
+    const costPrice = parseInt(document.getElementById('add_cost_price').value || '0');
+    const price = parseInt(document.getElementById('add_price').value || '0');
     
     // Validation: Giá vốn phải nhỏ hơn giá bán
-    if (data.cost_price >= data.price) {
+    if (costPrice >= price) {
         showErrorMessage('Giá vốn phải nhỏ hơn giá bán!');
         return;
+    }
+    
+    // Add money values to FormData
+    formData.append('cost_price', costPrice);
+    formData.append('price', price);
+    
+    // Handle image upload
+    const imageInput = document.getElementById('addProductImage');
+    if (imageInput && imageInput.files.length > 0) {
+        formData.append('image', imageInput.files[0]);
     }
     
     try {
         const response = await fetch('{{ BACKEND_URL }}/api/products/', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
             },
-            body: JSON.stringify(data)
+            body: formData
         });
         
         if (response.ok) {
@@ -671,6 +642,17 @@ function editProduct(id) {
         form.querySelector('input[name="unit"]').value = product.don_vi || '';
         form.querySelector('textarea[name="description"]').value = product.mo_ta || '';
         
+        // Show existing product image if available
+        if (product.image_url) {
+            const preview = document.getElementById('editProductImagePreview');
+            preview.innerHTML = `<img src="http://localhost:5001${product.image_url}" alt="Product Image" onerror="this.src='/static/images/products/default.png'">`;
+        } else {
+            document.getElementById('editProductImagePreview').innerHTML = '';
+        }
+        
+        // Clear file input to reset it
+        document.getElementById('editProductImage').value = '';
+        
         // Store initial state for edit modal
         storeModalState('editProductModal', form);
         
@@ -681,28 +663,36 @@ function editProduct(id) {
 async function updateProduct() {
     const form = document.getElementById('editProductForm');
     const formData = new FormData(form);
-    const data = Object.fromEntries(formData);
-    const id = data.id;
-    delete data.id;
+    
+    const id = formData.get('id');
     
     // Get values from hidden inputs for money fields
-    data.cost_price = parseInt(document.getElementById('edit_cost_price').value || '0');
-    data.price = parseInt(document.getElementById('edit_price').value || '0');
+    const costPrice = parseInt(document.getElementById('edit_cost_price').value || '0');
+    const price = parseInt(document.getElementById('edit_price').value || '0');
     
     // Validation: Giá vốn phải nhỏ hơn giá bán
-    if (data.cost_price >= data.price) {
+    if (costPrice >= price) {
         showErrorMessage('Giá vốn phải nhỏ hơn giá bán!');
         return;
+    }
+    
+    // Add money values to FormData
+    formData.append('cost_price', costPrice);
+    formData.append('price', price);
+    
+    // Handle image upload
+    const imageInput = document.getElementById('editProductImage');
+    if (imageInput && imageInput.files.length > 0) {
+        formData.append('image', imageInput.files[0]);
     }
     
     try {
         const response = await fetch(`{{ BACKEND_URL }}/api/products/${id}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
             },
-            body: JSON.stringify(data)
+            body: formData
         });
         
         if (response.ok) {
@@ -785,6 +775,75 @@ function showErrorMessage(message) {
     showErrorModal('Lỗi', message);
 }
 
+// Load warehouse data for auto-fill
+async function loadWarehouseDataForProducts() {
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/warehouse/');
+        if (response.ok) {
+            warehouseDataForProducts = await response.json();
+            warehouseCodeToItem = {};
+            warehouseDataForProducts.forEach(item => {
+                if (item && item.ma_sp) {
+                    warehouseCodeToItem[String(item.ma_sp).toLowerCase()] = item;
+                }
+            });
+        }
+    } catch (e) {
+        console.error('Error loading warehouse for products:', e);
+    }
+}
+
+// Debounced populate helper
+function debouncedTryPopulateFromWarehouse(code) {
+    if (!window._debouncedPopulateFromWH) {
+        window._debouncedPopulateFromWH = debounce((c) => tryPopulateProductFromWarehouse(c), 300);
+    }
+    window._debouncedPopulateFromWH(code);
+}
+
+// Try populate fields from warehouse by code
+function tryPopulateProductFromWarehouse(code) {
+    const productCode = (code || '').trim().toLowerCase();
+    if (!productCode) return;
+    if (!warehouseDataForProducts || warehouseDataForProducts.length === 0) return;
+    const item = warehouseCodeToItem[productCode] || warehouseDataForProducts.find(x => (x.ma_sp || '').toLowerCase() === productCode);
+    if (!item) return;
+
+    // Add modal fields
+    const addForm = document.getElementById('addProductForm');
+    if (addForm && document.getElementById('addProductModal').style.display === 'flex') {
+        const nameInput = addForm.querySelector('input[name="name"]');
+        const groupInput = addForm.querySelector('input[name="group"]');
+        const qtyInput = addForm.querySelector('input[name="quantity"]');
+        const costHidden = document.getElementById('add_cost_price');
+        const costDisplay = document.getElementById('add_cost_price_display');
+        if (nameInput) nameInput.value = item.ten_sp || '';
+        if (groupInput && item.nhom_san_pham) groupInput.value = item.nhom_san_pham;
+        if (typeof item.so_luong === 'number' && qtyInput) qtyInput.value = item.so_luong;
+        if (typeof item.gia_nhap === 'number' && costHidden && costDisplay) {
+            costHidden.value = item.gia_nhap;
+            costDisplay.value = (item.gia_nhap || 0).toLocaleString();
+        }
+    }
+
+    // Edit modal fields
+    const editForm = document.getElementById('editProductForm');
+    if (editForm && document.getElementById('editProductModal').style.display === 'flex') {
+        const nameInputE = editForm.querySelector('input[name="name"]');
+        const groupInputE = editForm.querySelector('input[name="group"]');
+        const qtyInputE = editForm.querySelector('input[name="quantity"]');
+        const costHiddenE = document.getElementById('edit_cost_price');
+        const costDisplayE = document.getElementById('edit_cost_price_display');
+        if (nameInputE) nameInputE.value = item.ten_sp || '';
+        if (groupInputE && item.nhom_san_pham) groupInputE.value = item.nhom_san_pham;
+        if (typeof item.so_luong === 'number' && qtyInputE) qtyInputE.value = item.so_luong;
+        if (typeof item.gia_nhap === 'number' && costHiddenE && costDisplayE) {
+            costHiddenE.value = item.gia_nhap;
+            costDisplayE.value = (item.gia_nhap || 0).toLocaleString();
+        }
+    }
+}
+
 // Money formatting function
 function formatMoneyTyping(sourceInput, hiddenInput) {
     const raw = (sourceInput.value || '').replace(/[^0-9]/g, '');
@@ -822,6 +881,22 @@ function restoreZeroIfEmpty(input) {
         if (hiddenInput) {
             hiddenInput.value = '0';
         }
+    }
+}
+
+// Preview image
+function previewImage(input, previewId) {
+    const preview = document.getElementById(previewId);
+    const file = input.files[0];
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.innerHTML = '';
     }
 }
 </script>

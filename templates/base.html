@@ -24,6 +24,18 @@
         <nav class="sidebar-nav">
         <ul>
             <li>
+                <a href="javascript:void(0)" class="dropdown-btn {% if request.endpoint in ['pos','discount_codes'] %}active{% endif %}" data-dropdown="sales">
+                    <i class="fas fa-cash-register"></i>
+                    Bán hàng
+                    <i class="fas fa-chevron-down" style="margin-left: auto; font-size: 12px;"></i>
+                </a>
+                <ul class="dropdown-container" {% if request.endpoint in ['pos','discount_codes'] %}style="display:block;"{% endif %}>
+                    <li><a href="{{ url_for('pos') }}" {% if request.endpoint == 'pos' %}class="active"{% endif %}>POS</a></li>
+                    <li><a href="{{ url_for('discount_codes') }}" {% if request.endpoint == 'discount_codes' %}class="active"{% endif %}>Mã giảm giá</a></li>
+                </ul>
+            </li>
+                
+                <li>
                     <a href="{{ url_for('general_diary') }}" {% if request.endpoint == 'general_diary' %}class="active"{% endif %}>
                         <i class="fas fa-home"></i>
                         Nhật ký chung
@@ -86,10 +98,28 @@
                 </li>
                 
                 <li>
-                    <a href="{{ url_for('account_management') }}" {% if request.endpoint == 'account_management' %}class="active"{% endif %}>
-                        <i class="fas fa-users-cog"></i>
-                        Quản lý tài khoản
+                    <a href="javascript:void(0)" class="dropdown-btn {% if request.endpoint in ['customers','customers_debts','customers_leaderboard'] %}active{% endif %}" data-dropdown="customers">
+                        <i class="fas fa-users"></i>
+                        Quản lý khách hàng
+                        <i class="fas fa-chevron-down" style="margin-left: auto; font-size: 12px;"></i>
                     </a>
+                    <ul class="dropdown-container" {% if request.endpoint in ['customers','customers_debts','customers_leaderboard'] %}style="display:block;"{% endif %}>
+                        <li><a href="{{ url_for('customers') }}" {% if request.endpoint == 'customers' %}class="active"{% endif %}>Danh sách</a></li>
+                        <li><a href="{{ url_for('customers_debts') }}" {% if request.endpoint == 'customers_debts' %}class="active"{% endif %}>Công nợ</a></li>
+                        <li><a href="{{ url_for('customers_leaderboard') }}" {% if request.endpoint == 'customers_leaderboard' %}class="active"{% endif %}>Xếp hạng</a></li>
+                    </ul>
+                </li>
+
+                <li>
+                    <a href="javascript:void(0)" class="dropdown-btn {% if request.endpoint in ['employees','employees_schedules'] %}active{% endif %}" data-dropdown="employees">
+                        <i class="fas fa-user-tie"></i>
+                        Quản lý nhân viên
+                        <i class="fas fa-chevron-down" style="margin-left: auto; font-size: 12px;"></i>
+                    </a>
+                    <ul class="dropdown-container" {% if request.endpoint in ['employees','employees_schedules'] %}style="display:block;"{% endif %}>
+                        <li><a href="{{ url_for('employees') }}" {% if request.endpoint == 'employees' %}class="active"{% endif %}>Nhân viên</a></li>
+                        <li><a href="{{ url_for('employees_schedules') }}" {% if request.endpoint == 'employees_schedules' %}class="active"{% endif %}>Ca làm việc</a></li>
+                    </ul>
                 </li>
         </ul>
         </nav>

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Công nợ khách hàng - PhanMemKeToan{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-hand-holding-dollar"></i> Công nợ khách hàng
+{% endblock %}
+
+{% block page_description %}
+Quan sát công nợ theo khách hàng dựa trên đơn hàng và thanh toán
+{% endblock %}
+
+{% block content %}
+<div class="table-container">
+    <div class="card">
+        <div class="card-header">
+            <h3>Công nợ khách hàng</h3>
+        </div>
+        <div class="card-body p-0">
+            <table class="table" id="debtsTable">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên khách hàng</th>
+                        <th>Số đơn</th>
+                        <th>Tổng SL mua</th>
+                        <th>Tổng giá trị</th>
+                        <th>Công nợ</th>
+                    </tr>
+                </thead>
+                <tbody id="debtsTableBody">
+                    <tr><td colspan="6" style="text-align:center; padding: var(--spacing-4); color: var(--gray-600);">Đang tải...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let ordersData = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadOrdersData();
+});
+
+async function loadOrdersData() {
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/customers-analytics/aggregates');
+        if (response.ok) {
+            const data = await response.json();
+            ordersData = Array.isArray(data) ? data : [];
+            renderDebtsFromAggregates();
+        } else {
+            document.getElementById('debtsTableBody').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: var(--spacing-4); color: var(--gray-600);">Không thể tải dữ liệu</td></tr>';
+        }
+    } catch (e) {
+        document.getElementById('debtsTableBody').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: var(--spacing-4); color: var(--gray-600);">Có lỗi xảy ra</td></tr>';
+    }
+}
+
+function renderDebtsFromAggregates() {
+    const tbody = document.getElementById('debtsTableBody');
+    const rows = ordersData.filter(r => (r.totalDebt || 0) > 0).sort((a,b)=> (b.totalDebt||0) - (a.totalDebt||0));
+    if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: var(--spacing-4); color: var(--gray-600);">Chưa có công nợ</td></tr>';
+        return;
+    }
+    tbody.innerHTML = rows.map((r,i)=>`
+        <tr>
+            <td>${i+1}</td>
+            <td><strong>${r.customerName || '-'}</strong></td>
+            <td>${r.orderCount || 0}</td>
+            <td>${r.totalQuantity || 0}</td>
+            <td>${(r.totalAmount||0).toLocaleString('vi-VN')} VNĐ</td>
+            <td><strong style="color: var(--danger-color);">${(r.totalDebt||0).toLocaleString('vi-VN')} VNĐ</strong></td>
+        </tr>
+    `).join('');
+}
+</script>
+{% endblock %}
+
+

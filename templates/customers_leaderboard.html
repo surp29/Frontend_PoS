@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Xếp hạng khách hàng - PhanMemKeToan{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-trophy"></i> Xếp hạng khách hàng
+{% endblock %}
+
+{% block page_description %}
+Bảng xếp hạng theo tổng giá trị đã mua của khách hàng
+{% endblock %}
+
+{% block content %}
+<div class="table-container">
+    <div class="card">
+        <div class="card-header">
+            <h3>Bảng xếp hạng khách hàng</h3>
+        </div>
+        <div class="card-body p-0">
+            <table class="table" id="leaderboardTable">
+                <thead>
+                    <tr>
+                        <th>Hạng</th>
+                        <th>Tên khách hàng</th>
+                        <th>Tổng SL mua</th>
+                        <th>Số đơn</th>
+                        <th>Tổng giá trị</th>
+                        <th>Hạn mức thành viên</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardTableBody">
+                    <tr><td colspan="5" style="text-align:center; padding: var(--spacing-4); color: var(--gray-600);">Đang tải...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let ordersData = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadOrdersData();
+});
+
+async function loadOrdersData() {
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/customers-analytics/leaderboard');
+        if (response.ok) {
+            const data = await response.json();
+            ordersData = Array.isArray(data) ? data : [];
+            renderLeaderboardFromApi();
+        } else {
+            document.getElementById('leaderboardTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding: var(--spacing-4); color: var(--gray-600);">Không thể tải dữ liệu</td></tr>';
+        }
+    } catch (e) {
+        document.getElementById('leaderboardTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding: var(--spacing-4); color: var(--gray-600);">Có lỗi xảy ra</td></tr>';
+    }
+}
+
+function renderLeaderboardFromApi() {
+    const tbody = document.getElementById('leaderboardTableBody');
+    const rows = ordersData;
+    if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: var(--spacing-4); color: var(--gray-600);">Chưa có dữ liệu xếp hạng</td></tr>';
+        return;
+    }
+    tbody.innerHTML = rows.map((r,i)=>{
+        return `
+        <tr>
+            <td>${i+1}</td>
+            <td><strong>${r.customerName || '-'}</strong></td>
+            <td>${r.totalQuantity || 0}</td>
+            <td>${r.orderCount || 0}</td>
+            <td>${(r.totalAmount||0).toLocaleString('vi-VN')} VNĐ</td>
+            <td><span class="tier-badge" style="background:${r.tierColor||'#e0e0e0'}">${r.tierName || '-'}</span></td>
+        </tr>
+    `}).join('');
+}
+</script>
+{% endblock %}
+
+

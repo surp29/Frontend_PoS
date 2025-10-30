@@ -1317,3 +1317,325 @@ input[type="number"] {
 .login-box button:active {
   transform: translateY(0);
 }
+
+/* --- customers_leaderboard (tier-badge) --- */
+.tier-badge {
+    display: inline-block;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+}
+/* --- hết customers_leaderboard --- */
+
+/* --- customers (stats-grid, stat-card, tab) --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+}
+.stat-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-6);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    transition: all var(--transition-normal);
+}
+.stat-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--spacing-4);
+}
+.stat-icon i {
+    font-size: var(--font-size-xl);
+    color: white;
+}
+.stat-content {
+    flex: 1;
+}
+.stat-number {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: var(--spacing-1);
+}
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    font-weight: 500;
+}
+.tabs-container { margin-bottom: var(--spacing-4); }
+.tabs { display: flex; gap: var(--spacing-2); }
+.tab { 
+    padding: var(--spacing-2) var(--spacing-4);
+    border: 1px solid var(--gray-300);
+    background: white;
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+.tab.active { 
+    background: var(--primary-50);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    font-weight: 600;
+}
+#debtsSection .table td, #debtsSection .table th,
+#leaderboardSection .table td, #leaderboardSection .table th {
+    vertical-align: middle;
+}
+/* --- hết customers --- */
+
+/* --- prices (stats-grid, stat-card, money-input-container) --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+}
+.stat-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-6);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    transition: all var(--transition-normal);
+}
+.stat-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--spacing-4);
+}
+.stat-icon i {
+    font-size: var(--font-size-xl);
+    color: white;
+}
+.stat-content {
+    flex: 1;
+}
+.stat-number {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: var(--spacing-1);
+}
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    font-weight: 500;
+}
+.money-input-container {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+.money-input-container .form-input {
+    flex: 1;
+}
+.currency-unit {
+    font-weight: 600;
+    color: var(--gray-600);
+    font-size: var(--font-size-sm);
+}
+/* --- hết prices --- */
+
+/* --- products --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+}
+.stat-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-6);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    transition: all var(--transition-normal);
+}
+.stat-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--spacing-4);
+}
+.stat-icon i {
+    font-size: var(--font-size-xl);
+    color: white;
+}
+.stat-content {
+    flex: 1;
+}
+.stat-number {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: var(--spacing-1);
+}
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    font-weight: 500;
+}
+.money-input-container {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+.money-input-container .form-input {
+    flex: 1;
+}
+.currency-unit {
+    font-weight: 600;
+    color: var(--gray-600);
+    font-size: var(--font-size-sm);
+}
+.image-preview {
+    margin-top: var(--spacing-2);
+}
+.image-preview img {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-300);
+    margin-top: var(--spacing-2);
+}
+/* --- hết products --- */
+
+/* --- general_diary (stats-grid, stat-card, money-input-container) --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+}
+.stat-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-6);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    transition: all var(--transition-normal);
+}
+.stat-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--spacing-4);
+}
+.stat-icon i {
+    font-size: var(--font-size-xl);
+    color: white;
+}
+.stat-content {
+    flex: 1;
+}
+.stat-number {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: var(--spacing-1);
+}
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    font-weight: 500;
+}
+.money-input-container {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+.money-input-container .form-input {
+    flex: 1;
+}
+.currency-unit {
+    font-weight: 600;
+    color: var(--gray-600);
+    font-size: var(--font-size-sm);
+}
+
+/* --- tabs component: unified style for all status tab bars system-wide --- */
+.tabs-container {
+  margin-bottom: var(--spacing-6); /* lớn như orders */
+}
+.tabs {
+  display: flex;
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-1);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+  overflow-x: auto;
+  align-items: center;
+}
+.tab {
+  flex: 1 1 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  border: none;
+  background: transparent;
+  color: var(--gray-600);
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  white-space: nowrap;
+  text-align: center;
+  font-size: var(--font-size-base);
+}
+.tab:not(.active):hover {
+  background: var(--gray-100);
+  color: var(--primary-color);
+}
+.tab.active {
+  background: var(--primary-color);
+  color: white;
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+/* --- end unified tabs --- */

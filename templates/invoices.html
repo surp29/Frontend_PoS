@@ -75,6 +75,20 @@ Quản lý và theo dõi các hóa đơn, xử lý thanh toán và cập nhật 
   </div>
         
         <div class="form-group">
+            <label class="form-label">Tìm khách hàng</label>
+            <div class="customer-search-container">
+                <div class="search-input">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="customerSearch" class="form-input" placeholder="Tìm kiếm hoặc nhập tên khách hàng" autocomplete="off" onkeypress="handleCustomerKeypress(event)">
+                </div>
+                <!-- Custom dropdown list -->
+                <div class="customer-dropdown-list" id="customerDropdownList" style="display: none;">
+                    <!-- Options will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
             <label class="form-label">Từ ngày</label>
             <input type="date" class="form-input" id="fromDate">
   </div>
@@ -84,14 +98,7 @@ Quản lý và theo dõi các hóa đơn, xử lý thanh toán và cập nhật 
             <input type="date" class="form-input" id="toDate">
   </div>
         
-        <div class="form-group">
-            <label class="form-label">Loại hóa đơn</label>
-            <select class="form-select" id="typeFilter">
-                <option value="">Tất cả loại</option>
-      <option value="Sản phẩm">Sản phẩm</option>
-      <option value="Hành động">Hành động</option>
-    </select>
-</div>
+    
 
         <div class="form-group">
             <button class="btn btn-secondary" onclick="clearFilters()">
@@ -120,7 +127,7 @@ Quản lý và theo dõi các hóa đơn, xử lý thanh toán và cập nhật 
                         <th>Số hóa đơn</th>
                         <th>Ngày tạo</th>
                         <th>Khách hàng</th>
-                        <th>Loại HĐ</th>
+                        
                         <th>Tổng tiền</th>
                         <th>Trạng thái</th>
                         <th>Thao tác</th>
@@ -163,18 +170,19 @@ Quản lý và theo dõi các hóa đơn, xử lý thanh toán và cập nhật 
       
          <div class="form-group">
                     <label class="form-label">Tên khách hàng *</label>
-                    <input type="text" class="form-input" name="ten_khach_hang" required placeholder="Nhập tên khách hàng">
+                    <div class="customer-search-container">
+                        <div class="search-input">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-input" name="ten_khach_hang" id="addCustomerName" required placeholder="Tìm kiếm hoặc nhập tên khách hàng" autocomplete="off" onkeypress="handleAddCustomerKeypress(event)">
+                        </div>
+                        <!-- Custom dropdown list -->
+                        <div class="customer-dropdown-list" id="addCustomerDropdownList" style="display: none;">
+                            <!-- Options will be populated dynamically -->
+                        </div>
+                    </div>
        </div>
       
        <div class="form-row">
-         <div class="form-group">
-                        <label class="form-label">Loại hóa đơn *</label>
-                        <select class="form-select" name="loai_hd" required>
-                            <option value="">Chọn loại hóa đơn</option>
-             <option value="Sản phẩm">Sản phẩm</option>
-             <option value="Hành động">Hành động</option>
-           </select>
-         </div>
          <div class="form-group">
                         <label class="form-label">Trạng thái *</label>
                         <select class="form-select" name="trang_thai" required>
@@ -238,13 +246,6 @@ Quản lý và theo dõi các hóa đơn, xử lý thanh toán và cập nhật 
       
       <div class="form-row">
         <div class="form-group">
-                        <label class="form-label">Loại hóa đơn</label>
-                        <select class="form-select" name="loai_hd" readonly>
-            <option value="Sản phẩm">Sản phẩm</option>
-            <option value="Hành động">Hành động</option>
-          </select>
-        </div>
-        <div class="form-group">
                         <label class="form-label">Trạng thái *</label>
                         <select class="form-select" name="trang_thai" required>
             <option value="Đã thanh toán">Đã thanh toán</option>
@@ -296,120 +297,6 @@ Quản lý và theo dõi các hóa đơn, xử lý thanh toán và cập nhật 
 </div>
 {% endblock %}
 
-{% block extra_css %}
-<style>
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: var(--spacing-4);
-    margin-bottom: var(--spacing-6);
-}
-
-.stat-card {
-    background: white;
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-6);
-    box-shadow: var(--shadow-md);
-    border: 1px solid var(--gray-200);
-    display: flex;
-    align-items: center;
-    transition: all var(--transition-normal);
-}
-
-.stat-card:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
-}
-
-.stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: var(--radius-lg);
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: var(--spacing-4);
-}
-
-.stat-icon i {
-    font-size: var(--font-size-xl);
-    color: white;
-}
-
-.stat-content {
-    flex: 1;
-}
-
-.stat-number {
-    font-size: var(--font-size-2xl);
-    font-weight: 700;
-    color: var(--gray-900);
-    margin-bottom: var(--spacing-1);
-}
-
-.stat-label {
-    font-size: var(--font-size-sm);
-    color: var(--gray-600);
-    font-weight: 500;
-}
-
-.tabs-container {
-    margin-bottom: var(--spacing-6);
-}
-
-.tabs {
-    display: flex;
-    background: white;
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-1);
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--gray-200);
-    overflow-x: auto;
-}
-
-.tab {
-    flex: 1;
-    padding: var(--spacing-3) var(--spacing-4);
-    border: none;
-    background: transparent;
-    color: var(--gray-600);
-    font-weight: 500;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all var(--transition-normal);
-    white-space: nowrap;
-}
-
-.tab:hover {
-    background: var(--gray-50);
-    color: var(--gray-700);
-}
-
-.tab.active {
-    background: var(--primary-color);
-    color: white;
-    box-shadow: var(--shadow-sm);
-}
-
-.money-input-container {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-2);
-}
-
-.money-input-container .form-input {
-    flex: 1;
-}
-
-.currency-unit {
-    font-weight: 600;
-    color: var(--gray-600);
-    font-size: var(--font-size-sm);
-}
-</style>
-{% endblock %}
-
 {% block extra_js %}
 <script>
 // Global variables
@@ -419,10 +306,12 @@ let currentPage = 1;
 const itemsPerPage = 10;
 let deleteInvoiceId = null;
 let currentStatus = 'all';
+let customersData = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     loadInvoicesData();
+    loadCustomers();
     setupEventListeners();
 });
 
@@ -442,10 +331,487 @@ function setupEventListeners() {
     document.getElementById('searchInvoice').addEventListener('input', debounce(filterInvoices, 300));
     document.getElementById('fromDate').addEventListener('change', filterInvoices);
     document.getElementById('toDate').addEventListener('change', filterInvoices);
-    document.getElementById('typeFilter').addEventListener('change', filterInvoices);
+    document.getElementById('customerSearch').addEventListener('input', debounce(filterInvoices, 300));
+    // removed type filter
 }
 
-// Load invoices data
+// Load customers
+async function loadCustomers() {
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/accounts/');
+        if (response.ok) {
+            customersData = await response.json();
+            console.log('Loaded customers:', customersData);
+            populateCustomerList();
+            populateAddCustomerList();
+            // Setup dropdown events after customers are loaded
+            setupCustomerDropdownEvents();
+            setupAddCustomerDropdownEvents();
+        }
+    } catch (error) {
+        console.error('Error loading customers:', error);
+    }
+}
+
+// Populate customer dropdown
+function populateCustomerList(searchTerm = '') {
+    const dropdownList = document.getElementById('customerDropdownList');
+    const customerInput = document.getElementById('customerSearch');
+    
+    console.log('populateCustomerList called with searchTerm:', searchTerm);
+    console.log('dropdownList element:', dropdownList);
+    
+    if (!dropdownList) {
+        console.error('Dropdown element not found!');
+        return;
+    }
+    
+    dropdownList.innerHTML = '';
+    
+    // Get all customers (not just active ones)
+    let allCustomers = customersData || [];
+    console.log('All customers for dropdown:', allCustomers);
+    
+    // Filter by search term if provided
+    if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        allCustomers = allCustomers.filter(c => {
+            const name = (c.ten_tk || '').toLowerCase();
+            const email = (c.email || '').toLowerCase();
+            const phone = (c.so_dt || '').toLowerCase();
+            return name.includes(searchLower) || email.includes(searchLower) || phone.includes(searchLower);
+        });
+        console.log('Filtered customers for search "' + searchTerm + '":', allCustomers);
+    }
+    
+    // Add "Tất cả khách hàng" first (always show)
+    const allCustomersDiv = document.createElement('div');
+    allCustomersDiv.className = 'customer-dropdown-item';
+    allCustomersDiv.dataset.value = '';
+    allCustomersDiv.innerHTML = '<strong>Tất cả khách hàng</strong>';
+    allCustomersDiv.onclick = function() {
+        selectCustomer('');
+        toggleDropdown();
+    };
+    dropdownList.appendChild(allCustomersDiv);
+    
+    // Add customers
+    if (allCustomers.length === 0 && searchTerm) {
+        // Show option to use typed name as customer name
+        const customCustomerDiv = document.createElement('div');
+        customCustomerDiv.className = 'customer-dropdown-item';
+        customCustomerDiv.dataset.value = searchTerm;
+        customCustomerDiv.innerHTML = `<strong>Thêm khách hàng: "${searchTerm}"</strong><small>Nhấn Enter để sử dụng</small>`;
+        customCustomerDiv.onclick = function() {
+            selectCustomer(searchTerm);
+            toggleDropdown();
+        };
+        dropdownList.appendChild(customCustomerDiv);
+        
+        const noResult = document.createElement('div');
+        noResult.className = 'customer-dropdown-item';
+        noResult.innerHTML = '<small style="color: var(--gray-500);">Không tìm thấy khách hàng có sẵn</small>';
+        dropdownList.appendChild(noResult);
+    } else {
+        allCustomers.forEach(customer => {
+            const name = customer.ten_tk || '';
+            const email = customer.email || '';
+            const phone = customer.so_dt || '';
+            
+            const item = document.createElement('div');
+            item.className = 'customer-dropdown-item';
+            item.dataset.value = name;
+            
+            let displayText = `<strong>${name}</strong>`;
+            if (email) {
+                displayText += `<small>${email}</small>`;
+            } else if (phone) {
+                displayText += `<small>${phone}</small>`;
+            }
+            
+            item.innerHTML = displayText;
+            item.onclick = function() {
+                selectCustomer(name);
+                toggleDropdown();
+            };
+            
+            dropdownList.appendChild(item);
+        });
+        
+        // If user is typing and there are results, also show option to use typed name
+        if (searchTerm && allCustomers.length > 0) {
+            const customCustomerDiv = document.createElement('div');
+            customCustomerDiv.className = 'customer-dropdown-item';
+            customCustomerDiv.dataset.value = searchTerm;
+            customCustomerDiv.innerHTML = `<strong>Thêm khách hàng: "${searchTerm}"</strong><small>Nhấn Enter để sử dụng</small>`;
+            customCustomerDiv.onclick = function() {
+                selectCustomer(searchTerm);
+                toggleDropdown();
+            };
+            dropdownList.appendChild(customCustomerDiv);
+        }
+    }
+}
+
+// Handle customer input keypress
+function handleCustomerKeypress(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        const customerInput = document.getElementById('customerSearch');
+        const searchTerm = customerInput.value.trim();
+        
+        if (searchTerm) {
+            // If user typed something, use that as customer name
+            selectCustomer(searchTerm);
+            toggleDropdown();
+        } else {
+            // If empty, select "Tất cả khách hàng"
+            selectCustomer('');
+            toggleDropdown();
+        }
+    }
+}
+
+// Handle add customer input keypress
+function handleAddCustomerKeypress(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        const customerInput = document.getElementById('addCustomerName');
+        const searchTerm = customerInput.value.trim();
+        
+        if (searchTerm) {
+            // If user typed something, use that as customer name
+            selectAddCustomer(searchTerm);
+            toggleAddDropdown();
+        } else {
+            // If empty, select "Khách vãng lai"
+            selectAddCustomer('Khách vãng lai');
+            toggleAddDropdown();
+        }
+    }
+}
+// Toggle dropdown
+function toggleDropdown() {
+    const dropdown = document.getElementById('customerDropdownList');
+    if (dropdown) {
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+// Toggle add dropdown
+function toggleAddDropdown() {
+    const dropdown = document.getElementById('addCustomerDropdownList');
+    if (dropdown) {
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+// Select customer
+function selectCustomer(customerName) {
+    const customerInput = document.getElementById('customerSearch');
+    
+    if (customerInput) {
+        customerInput.value = customerName;
+    }
+    
+    // Close dropdown
+    const dropdown = document.getElementById('customerDropdownList');
+    if (dropdown) {
+        dropdown.style.display = 'none';
+    }
+    
+    // Trigger filter
+    filterInvoices();
+}
+
+// Select add customer
+function selectAddCustomer(customerName) {
+    const customerInput = document.getElementById('addCustomerName');
+    
+    if (customerInput) {
+        customerInput.value = customerName;
+    }
+    
+    // Close dropdown
+    const dropdown = document.getElementById('addCustomerDropdownList');
+    if (dropdown) {
+        dropdown.style.display = 'none';
+    }
+}
+
+// Populate add customer dropdown
+function populateAddCustomerList(searchTerm = '') {
+    const dropdownList = document.getElementById('addCustomerDropdownList');
+    const customerInput = document.getElementById('addCustomerName');
+    
+    if (!dropdownList) {
+        console.error('Add customer dropdown element not found!');
+        return;
+    }
+    
+    dropdownList.innerHTML = '';
+    
+    // Get filtered active customers
+    let activeCustomers = customersData.filter(c => c.trang_thai === true || c.trang_thai === 'true');
+    
+    // Filter by search term if provided
+    if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        activeCustomers = activeCustomers.filter(c => {
+            const name = (c.ten_tk || '').toLowerCase();
+            const email = (c.email || '').toLowerCase();
+            const phone = (c.so_dt || '').toLowerCase();
+            return name.includes(searchLower) || email.includes(searchLower) || phone.includes(searchLower);
+        });
+    }
+    
+    // Add "Khách vãng lai" first (always show)
+    const walkInDiv = document.createElement('div');
+    walkInDiv.className = 'customer-dropdown-item';
+    walkInDiv.dataset.value = 'Khách vãng lai';
+    walkInDiv.innerHTML = '<strong>Khách vãng lai</strong>';
+    walkInDiv.onclick = function() {
+        selectAddCustomer('Khách vãng lai');
+        toggleAddDropdown();
+    };
+    dropdownList.appendChild(walkInDiv);
+    
+    // Add active customers
+    if (activeCustomers.length === 0 && searchTerm) {
+        // Show option to use typed name as customer name
+        const customCustomerDiv = document.createElement('div');
+        customCustomerDiv.className = 'customer-dropdown-item';
+        customCustomerDiv.dataset.value = searchTerm;
+        customCustomerDiv.innerHTML = `<strong>Thêm khách hàng: "${searchTerm}"</strong><small>Nhấn Enter để sử dụng</small>`;
+        customCustomerDiv.onclick = function() {
+            selectAddCustomer(searchTerm);
+            toggleAddDropdown();
+        };
+        dropdownList.appendChild(customCustomerDiv);
+        
+        const noResult = document.createElement('div');
+        noResult.className = 'customer-dropdown-item';
+        noResult.innerHTML = '<small style="color: var(--gray-500);">Không tìm thấy khách hàng có sẵn</small>';
+        dropdownList.appendChild(noResult);
+    } else {
+        activeCustomers.forEach(customer => {
+            const name = customer.ten_tk || '';
+            const email = customer.email || '';
+            const phone = customer.so_dt || '';
+            
+            const item = document.createElement('div');
+            item.className = 'customer-dropdown-item';
+            item.dataset.value = name;
+            
+            let displayText = `<strong>${name}</strong>`;
+            if (email) {
+                displayText += `<small>${email}</small>`;
+            } else if (phone) {
+                displayText += `<small>${phone}</small>`;
+            }
+            
+            item.innerHTML = displayText;
+            item.onclick = function() {
+                selectAddCustomer(name);
+                toggleAddDropdown();
+            };
+            
+            dropdownList.appendChild(item);
+        });
+        
+        // If user is typing and there are results, also show option to use typed name
+        if (searchTerm && activeCustomers.length > 0) {
+            const customCustomerDiv = document.createElement('div');
+            customCustomerDiv.className = 'customer-dropdown-item';
+            customCustomerDiv.dataset.value = searchTerm;
+            customCustomerDiv.innerHTML = `<strong>Thêm khách hàng: "${searchTerm}"</strong><small>Nhấn Enter để sử dụng</small>`;
+            customCustomerDiv.onclick = function() {
+                selectAddCustomer(searchTerm);
+                toggleAddDropdown();
+            };
+            dropdownList.appendChild(customCustomerDiv);
+        }
+    }
+}
+
+// Setup customer input events
+function setupCustomerDropdownEvents() {
+    const customerInput = document.getElementById('customerSearch');
+    const dropdown = document.getElementById('customerDropdownList');
+    
+    console.log('Setting up customer dropdown events...');
+    console.log('customerInput:', customerInput);
+    console.log('dropdown:', dropdown);
+    
+    if (customerInput && dropdown) {
+        console.log('Both elements found, setting up event listeners');
+        // Click on input to show dropdown
+        customerInput.addEventListener('click', function() {
+            const searchTerm = customerInput.value;
+            populateCustomerList(searchTerm);
+            dropdown.style.display = 'block';
+            highlightMatchedCustomer(searchTerm);
+        });
+        
+        // Focus on input to show dropdown and all customers
+        customerInput.addEventListener('focus', function() {
+            const searchTerm = customerInput.value;
+            populateCustomerList(searchTerm);
+            dropdown.style.display = 'block';
+            highlightMatchedCustomer(searchTerm);
+        });
+        
+        // Real-time search as user types - always show dropdown when typing
+        customerInput.addEventListener('input', function() {
+            const searchTerm = customerInput.value;
+            console.log('Input event triggered, searchTerm:', searchTerm);
+            populateCustomerList(searchTerm);
+            dropdown.style.display = 'block';
+            console.log('Dropdown display set to block');
+            highlightMatchedCustomer(searchTerm);
+        });
+        
+        // Handle keydown for better UX
+        customerInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                dropdown.style.display = 'none';
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                // Focus first item in dropdown
+                const firstItem = dropdown.querySelector('.customer-dropdown-item');
+                if (firstItem) {
+                    firstItem.focus();
+                }
+            }
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!customerInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+        
+        console.log('Customer dropdown events setup completed');
+    } else {
+        console.error('Customer input or dropdown element not found!');
+    }
+}
+
+// Setup add customer input events
+function setupAddCustomerDropdownEvents() {
+    const customerInput = document.getElementById('addCustomerName');
+    const dropdown = document.getElementById('addCustomerDropdownList');
+    
+    console.log('Setting up add customer dropdown events...');
+    console.log('addCustomerInput:', customerInput);
+    console.log('addCustomerDropdown:', dropdown);
+    
+    if (customerInput && dropdown) {
+        console.log('Both add customer elements found, setting up event listeners');
+        
+        // Click on input to show dropdown
+        customerInput.addEventListener('click', function() {
+            const searchTerm = customerInput.value;
+            populateAddCustomerList(searchTerm);
+            dropdown.style.display = 'block';
+            highlightMatchedAddCustomer(searchTerm);
+        });
+        
+        // Focus on input to show dropdown and all customers
+        customerInput.addEventListener('focus', function() {
+            const searchTerm = customerInput.value;
+            populateAddCustomerList(searchTerm);
+            dropdown.style.display = 'block';
+            highlightMatchedAddCustomer(searchTerm);
+        });
+        
+        // Real-time search as user types - always show dropdown when typing
+        customerInput.addEventListener('input', function() {
+            const searchTerm = customerInput.value;
+            console.log('Add customer input event triggered, searchTerm:', searchTerm);
+            populateAddCustomerList(searchTerm);
+            dropdown.style.display = 'block';
+            console.log('Add customer dropdown display set to block');
+            highlightMatchedAddCustomer(searchTerm);
+        });
+        
+        // Handle keydown for better UX
+        customerInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                dropdown.style.display = 'none';
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                // Focus first item in dropdown
+                const firstItem = dropdown.querySelector('.customer-dropdown-item');
+                if (firstItem) {
+                    firstItem.focus();
+                }
+            }
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!customerInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+        
+        console.log('Add customer dropdown events setup completed');
+    } else {
+        console.error('Add customer input or dropdown element not found!');
+    }
+}
+
+// Function to highlight matched add customer
+function highlightMatchedAddCustomer(searchTerm) {
+    if (!searchTerm || searchTerm.trim() === '') {
+        return; // Don't highlight anything if search term is empty
+    }
+    
+    const dropdown = document.getElementById('addCustomerDropdownList');
+    if (!dropdown) return;
+    
+    // Clear all highlights
+    const items = dropdown.querySelectorAll('.customer-dropdown-item');
+    items.forEach(item => item.classList.remove('selected'));
+    
+    // Find and highlight matching customer
+    searchTerm = searchTerm.trim().toLowerCase();
+    const matchingItem = Array.from(items).find(item => {
+        const value = (item.dataset.value || '').toLowerCase();
+        return value === searchTerm || value.includes(searchTerm);
+    });
+    
+    if (matchingItem) {
+        matchingItem.classList.add('selected');
+    }
+}
+
+// Function to highlight matched customer
+function highlightMatchedCustomer(searchTerm) {
+    if (!searchTerm || searchTerm.trim() === '') {
+        return; // Don't highlight anything if search term is empty
+    }
+    
+    const dropdown = document.getElementById('customerDropdownList');
+    if (!dropdown) return;
+    
+    // Clear all highlights
+    const items = dropdown.querySelectorAll('.customer-dropdown-item');
+    items.forEach(item => item.classList.remove('selected'));
+    
+    // Find and highlight matching customer
+    searchTerm = searchTerm.trim().toLowerCase();
+    const matchingItem = Array.from(items).find(item => {
+        const value = (item.dataset.value || '').toLowerCase();
+        return value === searchTerm || value.includes(searchTerm);
+    });
+    
+    if (matchingItem) {
+        matchingItem.classList.add('selected');
+    }
+}
 async function loadInvoicesData() {
     try {
         const response = await fetch('{{ BACKEND_URL }}/api/invoices/');
@@ -478,25 +844,34 @@ function updateStatistics() {
 // Filter invoices
 function filterInvoices() {
     const searchTerm = document.getElementById('searchInvoice').value.toLowerCase();
+    const customerSearch = document.getElementById('customerSearch').value.toLowerCase();
     const fromDate = document.getElementById('fromDate').value;
     const toDate = document.getElementById('toDate').value;
-    const typeFilter = document.getElementById('typeFilter').value;
+    const typeFilter = '';
+    
+    console.log('Filtering invoices with customer search:', customerSearch);
+    console.log('Available invoices:', invoicesData);
     
     filteredInvoices = invoicesData.filter(invoice => {
         const matchesSearch = !searchTerm || 
-                             (invoice.so_hoa_don && invoice.so_hoa_don.toLowerCase().includes(searchTerm)) ||
-                             (invoice.ten_khach_hang && invoice.ten_khach_hang.toLowerCase().includes(searchTerm));
+                             (invoice.so_hd && invoice.so_hd.toLowerCase().includes(searchTerm)) ||
+                             (invoice.nguoi_mua && invoice.nguoi_mua.toLowerCase().includes(searchTerm));
         
-        const invoiceDate = invoice.ngay_tao;
+        const matchesCustomer = !customerSearch || 
+                               (invoice.nguoi_mua && invoice.nguoi_mua.toLowerCase().includes(customerSearch));
+        
+        const invoiceDate = invoice.ngay_hd;
         const matchesFromDate = !fromDate || !invoiceDate || invoiceDate >= fromDate;
         const matchesToDate = !toDate || !invoiceDate || invoiceDate <= toDate;
         
-        const matchesTypeFilter = !typeFilter || invoice.loai_hd === typeFilter;
+        const matchesTypeFilter = true; // no type filter
         
         const matchesTabStatus = currentStatus === 'all' || invoice.trang_thai === currentStatus;
         
-        return matchesSearch && matchesFromDate && matchesToDate && matchesTypeFilter && matchesTabStatus;
+        return matchesSearch && matchesCustomer && matchesFromDate && matchesToDate && matchesTypeFilter && matchesTabStatus;
     });
+    
+    console.log('Filtered invoices result:', filteredInvoices);
     
     currentPage = 1;
     updateInvoicesTable();
@@ -506,6 +881,7 @@ function filterInvoices() {
 // Clear filters
 function clearFilters() {
     document.getElementById('searchInvoice').value = '';
+    document.getElementById('customerSearch').value = '';
     document.getElementById('fromDate').value = '';
     document.getElementById('toDate').value = '';
     document.getElementById('typeFilter').value = '';
@@ -531,17 +907,14 @@ function updateInvoicesTable() {
     tbody.innerHTML = pageInvoices.map((invoice, index) => `
         <tr>
             <td>${startIndex + index + 1}</td>
-            <td><strong>${invoice.so_hoa_don || '-'}</strong></td>
-            <td>${invoice.ngay_tao || '-'}</td>
-            <td>${invoice.ten_khach_hang || '-'}</td>
-            <td><span class="badge badge-info">${invoice.loai_hd || '-'}</span></td>
+            <td><strong>${invoice.so_hd || '-'}</strong></td>
+            <td>${invoice.ngay_hd || '-'}</td>
+            <td>${invoice.nguoi_mua || '-'}</td>
+            
             <td>${(invoice.tong_tien || 0).toLocaleString()} VNĐ</td>
             <td>${getStatusBadge(invoice.trang_thai)}</td>
             <td>
                 <div class="table-actions">
-                    <button class="btn btn-sm btn-primary" onclick="editInvoice(${invoice.id})">
-                        <i class="fas fa-edit"></i>
-                    </button>
                     <button class="btn btn-sm btn-danger" onclick="deleteInvoice(${invoice.id})">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -626,6 +999,12 @@ function openAddInvoiceModal() {
     document.getElementById('add_tong_tien_display').value = '';
     document.getElementById('add_tong_tien').value = '';
     
+    // Setup add customer dropdown events when modal opens
+    setTimeout(() => {
+        setupAddCustomerDropdownEvents();
+        populateAddCustomerList();
+    }, 100);
+    
     // Store initial state
     storeModalState('addInvoiceModal', form);
 }
@@ -638,26 +1017,8 @@ function closeAddInvoiceModal() {
 }
 
 function editInvoice(id) {
-    const invoice = invoicesData.find(i => i.id === id);
-    if (invoice) {
-        const form = document.getElementById('editInvoiceForm');
-        form.querySelector('input[name="id"]').value = invoice.id;
-        form.querySelector('input[name="so_hoa_don"]').value = invoice.so_hoa_don || '';
-        form.querySelector('input[name="ngay_tao"]').value = invoice.ngay_tao || '';
-        form.querySelector('input[name="ten_khach_hang"]').value = invoice.ten_khach_hang || '';
-        form.querySelector('select[name="loai_hd"]').value = invoice.loai_hd || '';
-        form.querySelector('select[name="trang_thai"]').value = invoice.trang_thai || '';
-        form.querySelector('textarea[name="ghi_chu"]').value = invoice.ghi_chu || '';
-        
-        const tongTien = invoice.tong_tien || 0;
-        document.getElementById('edit_tong_tien').value = tongTien;
-        document.getElementById('edit_tong_tien_display').value = tongTien.toLocaleString();
-        
-        // Store initial state for edit modal
-        storeModalState('editInvoiceModal', form);
-        
-        document.getElementById('editInvoiceModal').style.display = 'flex';
-    }
+    // Edit function removed - no longer needed
+    console.log('Edit function removed');
 }
 
 function closeEditInvoiceModal() {
@@ -669,8 +1030,14 @@ async function createInvoice() {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
     
-    // Convert numeric fields
-    data.tong_tien = parseInt(document.getElementById('add_tong_tien').value || '0');
+    // Map form fields to backend API fields
+    const payload = {
+        so_hd: data.so_hoa_don,
+        ngay_hd: data.ngay_tao,
+        nguoi_mua: data.ten_khach_hang,
+        tong_tien: parseInt(document.getElementById('add_tong_tien').value || '0'),
+        trang_thai: data.trang_thai
+    };
     
     try {
         const response = await fetch('{{ BACKEND_URL }}/api/invoices/', {
@@ -679,7 +1046,7 @@ async function createInvoice() {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(payload)
         });
         
         const result = await response.json();
@@ -701,10 +1068,15 @@ async function updateInvoice() {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
     const id = data.id;
-    delete data.id;
     
-    // Convert numeric fields
-    data.tong_tien = parseInt(document.getElementById('edit_tong_tien').value || '0');
+    // Map form fields to backend API fields
+    const payload = {
+        so_hd: data.so_hoa_don,
+        ngay_hd: data.ngay_tao,
+        nguoi_mua: data.ten_khach_hang,
+        tong_tien: parseInt(document.getElementById('edit_tong_tien').value || '0'),
+        trang_thai: data.trang_thai
+    };
     
     try {
         const response = await fetch(`{{ BACKEND_URL }}/api/invoices/${id}`, {
@@ -713,14 +1085,14 @@ async function updateInvoice() {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(payload)
         });
         
         const result = await response.json();
         if (result.success) {
             document.getElementById('editInvoiceModal').style.display = 'none';
             clearModalState('editInvoiceModal');
-            loadInvoiceData();
+            loadInvoicesData();
             showSuccessMessage('Cập nhật thành công!');
   } else {
             showErrorMessage(result.message || 'Có lỗi xảy ra khi cập nhật hóa đơn');

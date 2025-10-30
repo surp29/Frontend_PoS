@@ -28,8 +28,8 @@ def login_required(f):
 @app.route('/')
 @login_required
 def index():
-    """Trang chủ - chuyển hướng đến nhật ký chung"""
-    return redirect(url_for('general_diary'))
+    """Trang chủ - chuyển hướng đến trang bán hàng"""
+    return redirect(url_for('pos'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -109,8 +109,50 @@ def shops_management():
 @app.route('/account-management')
 @login_required
 def account_management():
-    """Trang quản lý tài khoản"""
-    return render_template('account_management.html')
+    """Trang quản lý tài khoản - redirect to customers"""
+    return redirect(url_for('customers'))
+
+@app.route('/customers')
+@login_required
+def customers():
+    """Trang quản lý khách hàng"""
+    return render_template('customers.html')
+
+@app.route('/customers/debts')
+@login_required
+def customers_debts():
+    """Trang công nợ khách hàng"""
+    return render_template('customers_debts.html')
+
+@app.route('/customers/leaderboard')
+@login_required
+def customers_leaderboard():
+    """Trang xếp hạng khách hàng"""
+    return render_template('customers_leaderboard.html')
+
+@app.route('/employees')
+@login_required
+def employees():
+    """Trang quản lý nhân viên"""
+    return render_template('employees.html')
+
+@app.route('/employees/schedules')
+@login_required
+def employees_schedules():
+    """Trang quản lý ca làm việc"""
+    return render_template('employees_schedules.html')
+
+@app.route('/pos')
+@login_required
+def pos():
+    """Trang bán hàng - Point of Sale"""
+    return render_template('pos.html')
+
+@app.route('/discount-codes')
+@login_required
+def discount_codes():
+    """Trang quản lý mã giảm giá"""
+    return render_template('discount_codes.html')
 
 if __name__ == '__main__':
     print("🚀 Starting PhanMemKeToan Frontend on port", Config.FRONTEND_PORT)

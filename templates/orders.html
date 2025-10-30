@@ -157,8 +157,8 @@ Quản lý và theo dõi các đơn hàng, xử lý giao dịch và cập nhật
             <form id="addOrderForm">
       <div class="form-row">
         <div class="form-group">
-                        <label class="form-label">Mã đơn hàng *</label>
-                        <input type="text" class="form-input" name="ma_don_hang" required placeholder="Nhập mã đơn hàng">
+            <label class="form-label">Mã đơn hàng *</label>
+            <input type="text" class="form-input" name="ma_don_hang" id="addOrderCode" required placeholder="Tự động tạo" readonly>
         </div>
         <div class="form-group">
                         <label class="form-label">Ngày tạo *</label>
@@ -168,13 +168,37 @@ Quản lý và theo dõi các đơn hàng, xử lý giao dịch và cập nhật
       
       <div class="form-group">
                     <label class="form-label">Thông tin khách hàng *</label>
-                    <input type="text" class="form-input" name="thong_tin_kh" required placeholder="Nhập thông tin khách hàng">
+                    <div class="customer-search-container">
+                        <div class="search-input">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="addCustomerName" class="form-input" name="thong_tin_kh" required placeholder="Tìm kiếm hoặc nhập tên khách hàng" autocomplete="off" onkeypress="handleAddCustomerKeypress(event)">
+                        </div>
+                        <!-- Custom dropdown list -->
+                        <div class="customer-dropdown-list" id="addCustomerDropdownList" style="display: none;">
+                            <!-- Options will be populated dynamically -->
+                        </div>
+                    </div>
+      </div>
+      
+      <div class="form-group">
+                    <label class="form-label">Sản phẩm/Bảng giá</label>
+                    <div class="product-search-container">
+                        <div class="search-input">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="productSearch" class="form-input" placeholder="Tìm kiếm sản phẩm hoặc bảng giá" autocomplete="off" onkeypress="handleProductKeypress(event)">
+                        </div>
+                        <!-- Custom dropdown list -->
+                        <div class="product-dropdown-list" id="productDropdownList" style="display: none;">
+                            <!-- Options will be populated dynamically -->
+                        </div>
+                    </div>
       </div>
       
               <div class="form-row">
           <div class="form-group">
                         <label class="form-label">Số lượng *</label>
-                        <input type="number" class="form-input" name="so_luong" min="1" required placeholder="Nhập số lượng">
+                        <input type="number" class="form-input" name="so_luong" min="1" required placeholder="Nhập số lượng" oninput="validateQuantity(this)" onchange="validateQuantity(this)">
+                        <div id="quantityMessage" class="quantity-message" style="display: none;"></div>
         </div>
         <div class="form-group">
                         <label class="form-label">Mã số thuế</label>
@@ -432,6 +456,164 @@ Quản lý và theo dõi các đơn hàng, xử lý giao dịch và cập nhật
     color: var(--gray-600);
     font-size: var(--font-size-sm);
 }
+
+/* Product search dropdown styles */
+.product-search-container {
+    position: relative;
+}
+
+.product-dropdown-list {
+    position: absolute;
+    top: calc(100% + var(--spacing-1));
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    margin-top: var(--spacing-1);
+}
+
+.product-dropdown-item {
+    padding: var(--spacing-4);
+    cursor: pointer;
+    border-bottom: 1px solid var(--gray-200);
+    transition: all var(--transition-normal);
+}
+
+.product-dropdown-item:hover {
+    background: var(--gray-50);
+    border-left: 3px solid var(--primary-color);
+}
+
+.product-dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.product-dropdown-item.selected {
+    background: var(--primary-50);
+    border-left: 3px solid var(--primary-color);
+}
+
+.product-dropdown-item strong {
+    color: var(--gray-900);
+    display: block;
+    margin-bottom: var(--spacing-1);
+}
+
+.product-dropdown-item small {
+    color: var(--gray-600);
+    font-size: var(--font-size-sm);
+    display: block;
+}
+
+.product-dropdown-item[data-type="product"] {
+    border-left: 3px solid var(--success-color);
+}
+
+.product-dropdown-item[data-type="product"]:hover {
+    background: var(--success-50);
+}
+
+.product-dropdown-item[data-type="price"] {
+    border-left: 3px solid var(--warning-color);
+}
+
+.product-dropdown-item[data-type="price"]:hover {
+    background: var(--warning-50);
+}
+
+/* Customer search dropdown styles (from POS) */
+.customer-search-container {
+    position: relative;
+}
+
+.customer-dropdown-list {
+    position: absolute;
+    top: calc(100% + var(--spacing-1));
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    margin-top: var(--spacing-1);
+}
+
+.customer-dropdown-item {
+    padding: var(--spacing-4);
+    cursor: pointer;
+    border-bottom: 1px solid var(--gray-200);
+    transition: all var(--transition-normal);
+}
+
+.customer-dropdown-item:hover {
+    background: var(--gray-50);
+    border-left: 3px solid var(--primary-color);
+}
+
+.customer-dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.customer-dropdown-item.selected {
+    background: var(--primary-50);
+    border-left: 3px solid var(--primary-color);
+}
+
+.customer-dropdown-item strong {
+    color: var(--gray-900);
+    display: block;
+    margin-bottom: var(--spacing-1);
+}
+
+.customer-dropdown-item small {
+    color: var(--gray-600);
+    font-size: var(--font-size-sm);
+    display: block;
+}
+
+.customer-dropdown-item[data-value]:not([data-value="Khách vãng lai"]) {
+    border-left: 3px solid var(--success-color);
+}
+
+.customer-dropdown-item[data-value]:not([data-value="Khách vãng lai"]):hover {
+    background: var(--success-50);
+}
+
+/* Quantity validation message */
+.quantity-message {
+    margin-top: var(--spacing-1);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-2);
+    border-radius: var(--radius);
+    border-left: 3px solid;
+    transition: all var(--transition-normal);
+}
+
+.quantity-message.warning {
+    background: var(--warning-50);
+    border-left-color: var(--warning-color);
+    color: var(--warning-700);
+}
+
+.quantity-message.error {
+    background: var(--danger-50);
+    border-left-color: var(--danger-color);
+    color: var(--danger-700);
+}
+
+.quantity-message.info {
+    background: var(--info-50);
+    border-left-color: var(--info-color);
+    color: var(--info-700);
+}
 </style>
 {% endblock %}
 
@@ -444,10 +626,17 @@ let currentPage = 1;
 const itemsPerPage = 10;
 let deleteOrderId = null;
 let currentStatus = 'all';
+let productsData = [];
+let pricesData = [];
+let customersData = [];
+let selectedProduct = null; // Store selected product for quantity validation
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     loadOrdersData();
+    loadProductsData();
+    loadPricesData();
+    loadCustomersData();
     setupEventListeners();
 });
 
@@ -484,6 +673,65 @@ async function loadOrdersData() {
         }
     } catch (error) {
         console.error('Error loading orders:', error);
+    }
+}
+
+// Load products data
+async function loadProductsData() {
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/products/');
+        if (response.ok) {
+            const result = await response.json();
+            productsData = result.products || [];
+        }
+    } catch (error) {
+        console.error('Error loading products:', error);
+    }
+}
+
+// Load prices data
+async function loadPricesData() {
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/prices/');
+        if (response.ok) {
+            const result = await response.json();
+            // Handle different response formats
+            if (Array.isArray(result)) {
+                pricesData = result;
+            } else if (result.prices && Array.isArray(result.prices)) {
+                pricesData = result.prices;
+            } else if (result.success && Array.isArray(result)) {
+                pricesData = result;
+            } else {
+                pricesData = [];
+            }
+        }
+    } catch (error) {
+        console.error('Error loading prices:', error);
+        pricesData = [];
+    }
+}
+
+// Load customers data
+async function loadCustomersData() {
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/accounts/');
+        if (response.ok) {
+            const result = await response.json();
+            // Handle different response formats
+            if (Array.isArray(result)) {
+                customersData = result;
+            } else if (result.accounts && Array.isArray(result.accounts)) {
+                customersData = result.accounts;
+            } else if (result.success && Array.isArray(result)) {
+                customersData = result;
+            } else {
+                customersData = [];
+            }
+        }
+    } catch (error) {
+        console.error('Error loading customers:', error);
+        customersData = [];
     }
 }
 
@@ -642,23 +890,566 @@ function goToPage(page) {
     }
 }
 
+// Generate order code (similar to invoice code)
+let orderSequenceCounter = 0;
+
+function generateOrderCode() {
+    const now = new Date();
+    const dd = String(now.getDate()).padStart(2, '0');
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const yy = String(now.getFullYear()).slice(-2);
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm_time = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+    
+    // Tăng counter cho đơn hàng
+    orderSequenceCounter++;
+    if (orderSequenceCounter > 9999) {
+        orderSequenceCounter = 1;
+    }
+    
+    const orderNum = String(orderSequenceCounter).padStart(4, '0');
+    return `DH${dd}${mm}${yy}${hh}${mm_time}${ss}${orderNum}`;
+}
+
+// Customer search functions (from POS)
+function populateAddCustomerList(searchTerm = '') {
+    const dropdownList = document.getElementById('addCustomerDropdownList');
+    const customerInput = document.getElementById('addCustomerName');
+    
+    if (!dropdownList) return;
+    
+    dropdownList.innerHTML = '';
+    
+    // Get filtered active customers
+    let activeCustomers = Array.isArray(customersData) ? customersData.filter(c => c.trang_thai === true || c.trang_thai === 'true') : [];
+    
+    // Filter by search term if provided
+    if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        activeCustomers = activeCustomers.filter(c => {
+            const name = (c.ten_tk || '').toLowerCase();
+            const email = (c.email || '').toLowerCase();
+            const phone = (c.so_dt || '').toLowerCase();
+            return name.includes(searchLower) || email.includes(searchLower) || phone.includes(searchLower);
+        });
+    }
+    
+    // Add "Khách vãng lai" first (always show)
+    const walkInDiv = document.createElement('div');
+    walkInDiv.className = 'customer-dropdown-item';
+    walkInDiv.dataset.value = 'Khách vãng lai';
+    walkInDiv.innerHTML = '<strong>Khách vãng lai</strong>';
+    walkInDiv.onclick = function() {
+        selectAddCustomer('Khách vãng lai');
+        toggleAddCustomerDropdown();
+    };
+    dropdownList.appendChild(walkInDiv);
+    
+    // Add active customers
+    if (activeCustomers.length === 0 && searchTerm) {
+        // Show option to use typed name as customer name
+        const customCustomerDiv = document.createElement('div');
+        customCustomerDiv.className = 'customer-dropdown-item';
+        customCustomerDiv.dataset.value = searchTerm;
+        customCustomerDiv.innerHTML = `<strong>Thêm khách hàng: "${searchTerm}"</strong><small>Nhấn Enter để sử dụng</small>`;
+        customCustomerDiv.onclick = function() {
+            selectAddCustomer(searchTerm);
+            toggleAddCustomerDropdown();
+        };
+        dropdownList.appendChild(customCustomerDiv);
+        
+        const noResult = document.createElement('div');
+        noResult.className = 'customer-dropdown-item';
+        noResult.innerHTML = '<small style="color: var(--gray-500);">Không tìm thấy khách hàng có sẵn</small>';
+        dropdownList.appendChild(noResult);
+    } else {
+        activeCustomers.forEach(customer => {
+            const name = customer.ten_tk || '';
+            const email = customer.email || '';
+            const phone = customer.so_dt || '';
+            
+            const item = document.createElement('div');
+            item.className = 'customer-dropdown-item';
+            item.dataset.value = name;
+            
+            let displayText = `<strong>${name}</strong>`;
+            if (email) {
+                displayText += `<small>${email}</small>`;
+            } else if (phone) {
+                displayText += `<small>${phone}</small>`;
+            }
+            
+            item.innerHTML = displayText;
+            item.onclick = function() {
+                selectAddCustomer(name);
+                toggleAddCustomerDropdown();
+            };
+            
+            dropdownList.appendChild(item);
+        });
+        
+        // If user is typing and there are results, also show option to use typed name
+        if (searchTerm && activeCustomers.length > 0) {
+            const customCustomerDiv = document.createElement('div');
+            customCustomerDiv.className = 'customer-dropdown-item';
+            customCustomerDiv.dataset.value = searchTerm;
+            customCustomerDiv.innerHTML = `<strong>Thêm khách hàng: "${searchTerm}"</strong><small>Nhấn Enter để sử dụng</small>`;
+            customCustomerDiv.onclick = function() {
+                selectAddCustomer(searchTerm);
+                toggleAddCustomerDropdown();
+            };
+            dropdownList.appendChild(customCustomerDiv);
+        }
+    }
+}
+
+function handleAddCustomerKeypress(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        const customerInput = document.getElementById('addCustomerName');
+        const searchTerm = customerInput.value.trim();
+        
+        if (searchTerm) {
+            // If user typed something, use that as customer name
+            selectAddCustomer(searchTerm);
+            toggleAddCustomerDropdown();
+        } else {
+            // If empty, select "Khách vãng lai"
+            selectAddCustomer('Khách vãng lai');
+            toggleAddCustomerDropdown();
+        }
+    }
+}
+
+function toggleAddCustomerDropdown() {
+    const dropdown = document.getElementById('addCustomerDropdownList');
+    if (dropdown) {
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+function selectAddCustomer(customerName) {
+    const customerInput = document.getElementById('addCustomerName');
+    
+    if (customerInput) {
+        customerInput.value = customerName;
+    }
+    
+    // Close dropdown
+    const dropdown = document.getElementById('addCustomerDropdownList');
+    if (dropdown) {
+        dropdown.style.display = 'none';
+    }
+}
+
+// Setup add customer dropdown events
+function setupAddCustomerDropdownEvents() {
+    const customerInput = document.getElementById('addCustomerName');
+    const dropdown = document.getElementById('addCustomerDropdownList');
+    
+    if (customerInput && dropdown) {
+        // Click on input to show dropdown
+        customerInput.addEventListener('click', function() {
+            const searchTerm = customerInput.value;
+            populateAddCustomerList(searchTerm);
+            dropdown.style.display = 'block';
+        });
+        
+        // Focus on input to show dropdown and all customers
+        customerInput.addEventListener('focus', function() {
+            const searchTerm = customerInput.value;
+            populateAddCustomerList(searchTerm);
+            dropdown.style.display = 'block';
+        });
+        
+        // Real-time search as user types - always show dropdown when typing
+        customerInput.addEventListener('input', function() {
+            const searchTerm = customerInput.value;
+            populateAddCustomerList(searchTerm);
+            dropdown.style.display = 'block';
+        });
+        
+        // Handle keydown for better UX
+        customerInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                dropdown.style.display = 'none';
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                // Focus first item in dropdown
+                const firstItem = dropdown.querySelector('.customer-dropdown-item');
+                if (firstItem) {
+                    firstItem.focus();
+                }
+            }
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!customerInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    }
+}
+
+// Product search functions
+function populateProductList(searchTerm = '') {
+    const dropdownList = document.getElementById('productDropdownList');
+    const productInput = document.getElementById('productSearch');
+    
+    if (!dropdownList) return;
+    
+    dropdownList.innerHTML = '';
+    
+    // Debug logging
+    console.log('populateProductList - productsData:', productsData);
+    console.log('populateProductList - pricesData:', pricesData);
+    
+    // Filter products and prices by search term
+    let filteredProducts = Array.isArray(productsData) ? productsData : [];
+    let filteredPrices = Array.isArray(pricesData) ? pricesData : [];
+    
+    console.log('populateProductList - filteredProducts:', filteredProducts);
+    console.log('populateProductList - filteredPrices:', filteredPrices);
+    
+    if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        filteredProducts = filteredProducts.filter(p => {
+            const name = (p.ten_sp || '').toLowerCase();
+            const code = (p.ma_sp || '').toLowerCase();
+            return name.includes(searchLower) || code.includes(searchLower);
+        });
+        
+        filteredPrices = filteredPrices.filter(p => {
+            const name = (p.ten_sp || '').toLowerCase();
+            const code = (p.ma_sp || '').toLowerCase();
+            return name.includes(searchLower) || code.includes(searchLower);
+        });
+    }
+    
+    // Add products
+    filteredProducts.forEach(product => {
+        const name = product.ten_sp || '';
+        const code = product.ma_sp || '';
+        const price = product.gia_ban || 0;
+        
+        const item = document.createElement('div');
+        item.className = 'product-dropdown-item';
+        item.dataset.type = 'product';
+        item.dataset.value = code;
+        
+        item.innerHTML = `
+            <strong>${name}</strong>
+            <small>Mã: ${code} - Giá bán: ${price.toLocaleString()} VNĐ</small>
+        `;
+        
+        item.onclick = function() {
+            selectProduct(name, code, 'product');
+            toggleProductDropdown();
+        };
+        
+        dropdownList.appendChild(item);
+    });
+    
+    // Add prices
+    filteredPrices.forEach(price => {
+        const name = price.ten_sp || '';
+        const code = price.ma_sp || '';
+        const priceValue = price.gia_chung || 0;
+        
+        const item = document.createElement('div');
+        item.className = 'product-dropdown-item';
+        item.dataset.type = 'price';
+        item.dataset.value = code;
+        
+        item.innerHTML = `
+            <strong>${name}</strong>
+            <small>Mã: ${code} - Giá chung: ${priceValue.toLocaleString()} VNĐ</small>
+        `;
+        
+        item.onclick = function() {
+            selectProduct(name, code, 'price');
+            toggleProductDropdown();
+        };
+        
+        dropdownList.appendChild(item);
+    });
+    
+    if (filteredProducts.length === 0 && filteredPrices.length === 0 && searchTerm) {
+        const noResult = document.createElement('div');
+        noResult.className = 'product-dropdown-item';
+        noResult.innerHTML = '<small style="color: var(--gray-500);">Không tìm thấy sản phẩm hoặc bảng giá</small>';
+        dropdownList.appendChild(noResult);
+    }
+}
+
+function handleProductKeypress(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        const productInput = document.getElementById('productSearch');
+        const searchTerm = productInput.value.trim();
+        
+        if (searchTerm) {
+            // Find first matching item
+            const dropdown = document.getElementById('productDropdownList');
+            const firstItem = dropdown.querySelector('.product-dropdown-item[data-type]');
+            if (firstItem) {
+                firstItem.click();
+            }
+        }
+    }
+}
+
+function toggleProductDropdown() {
+    const dropdown = document.getElementById('productDropdownList');
+    if (dropdown) {
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+function selectProduct(name, code, type) {
+    const productInput = document.getElementById('productSearch');
+    
+    if (productInput) {
+        productInput.value = `${name} (${code})`;
+    }
+    
+    // Store selected product for quantity validation
+    if (type === 'product') {
+        selectedProduct = productsData.find(p => p.ma_sp === code);
+    } else if (type === 'price') {
+        selectedProduct = pricesData.find(p => p.ma_sp === code);
+    }
+    
+    // Auto-fill product code in sp_banggia field if it exists
+    const spBangGiaField = document.querySelector('input[name="sp_banggia"]');
+    if (spBangGiaField) {
+        spBangGiaField.value = code;
+    }
+    
+    // Auto-calculate total if both quantity and price are available
+    autoCalculateTotal();
+    
+    // Validate current quantity
+    const quantityInput = document.querySelector('input[name="so_luong"]');
+    if (quantityInput) {
+        validateQuantity(quantityInput);
+    }
+    
+    // Close dropdown
+    const dropdown = document.getElementById('productDropdownList');
+    if (dropdown) {
+        dropdown.style.display = 'none';
+    }
+}
+
+// Validate quantity against available stock
+function validateQuantity(input) {
+    const quantity = parseInt(input.value) || 0;
+    const messageDiv = document.getElementById('quantityMessage');
+    
+    if (!selectedProduct) {
+        // No product selected
+        messageDiv.style.display = 'none';
+        return;
+    }
+    
+    const availableStock = selectedProduct.so_luong || 0;
+    
+    if (quantity <= 0) {
+        // Invalid quantity
+        messageDiv.style.display = 'none';
+        return;
+    }
+    
+    if (quantity > availableStock) {
+        // Exceeds available stock
+        messageDiv.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            Số lượng vượt quá tồn kho! Chỉ còn ${availableStock} sản phẩm. 
+            <button type="button" onclick="setMaxQuantity()" style="margin-left: 8px; padding: 2px 8px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                Đặt tối đa
+            </button>
+        `;
+        messageDiv.className = 'quantity-message error';
+        messageDiv.style.display = 'block';
+        
+        // Auto-adjust to max available
+        input.value = availableStock;
+        autoCalculateTotal();
+    } else if (quantity === availableStock) {
+        // Using all available stock
+        messageDiv.innerHTML = `
+            <i class="fas fa-info-circle"></i>
+            Đang sử dụng toàn bộ tồn kho (${availableStock} sản phẩm)
+        `;
+        messageDiv.className = 'quantity-message warning';
+        messageDiv.style.display = 'block';
+    } else {
+        // Normal quantity
+        const remaining = availableStock - quantity;
+        messageDiv.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            Còn lại ${remaining} sản phẩm trong kho
+        `;
+        messageDiv.className = 'quantity-message info';
+        messageDiv.style.display = 'block';
+    }
+}
+
+// Set quantity to maximum available
+function setMaxQuantity() {
+    if (selectedProduct) {
+        const quantityInput = document.querySelector('input[name="so_luong"]');
+        const availableStock = selectedProduct.so_luong || 0;
+        quantityInput.value = availableStock;
+        validateQuantity(quantityInput);
+        autoCalculateTotal();
+    }
+}
+
+// Auto-calculate total when product and quantity are selected
+function autoCalculateTotal() {
+    const productInput = document.getElementById('productSearch');
+    const quantityInput = document.querySelector('input[name="so_luong"]');
+    const totalDisplay = document.getElementById('add_tong_tien_display');
+    const totalHidden = document.getElementById('add_tong_tien');
+    
+    if (!productInput || !quantityInput || !totalDisplay || !totalHidden) return;
+    
+    const productText = productInput.value;
+    const quantity = parseInt(quantityInput.value) || 0;
+    
+    if (productText && quantity > 0) {
+        // Extract product code from the selected text
+        const codeMatch = productText.match(/\(([^)]+)\)$/);
+        if (codeMatch) {
+            const productCode = codeMatch[1];
+            
+            // Find product or price by code
+            let selectedProduct = productsData.find(p => p.ma_sp === productCode);
+            let selectedPrice = pricesData.find(p => p.ma_sp === productCode);
+            
+            let price = 0;
+            if (selectedProduct) {
+                price = selectedProduct.gia_ban || 0;
+            } else if (selectedPrice) {
+                price = selectedPrice.gia_chung || 0;
+            }
+            
+            if (price > 0) {
+                const total = price * quantity;
+                totalHidden.value = total;
+                totalDisplay.value = total.toLocaleString();
+            }
+        }
+    }
+    
+    // Validate quantity after calculation
+    if (quantityInput) {
+        validateQuantity(quantityInput);
+    }
+}
+
+// Setup product dropdown events
+function setupProductDropdownEvents() {
+    const productInput = document.getElementById('productSearch');
+    const dropdown = document.getElementById('productDropdownList');
+    
+    if (productInput && dropdown) {
+        // Click on input to show dropdown
+        productInput.addEventListener('click', function() {
+            const searchTerm = productInput.value;
+            populateProductList(searchTerm);
+            dropdown.style.display = 'block';
+        });
+        
+        // Focus on input to show dropdown
+        productInput.addEventListener('focus', function() {
+            const searchTerm = productInput.value;
+            populateProductList(searchTerm);
+            dropdown.style.display = 'block';
+        });
+        
+        // Real-time search as user types
+        productInput.addEventListener('input', function() {
+            const searchTerm = productInput.value;
+            populateProductList(searchTerm);
+            dropdown.style.display = 'block';
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!productInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    }
+}
+
 // Modal functions
 function openAddOrderModal() {
     const modal = document.getElementById('addOrderModal');
-    const form = document.getElementById('addOrderModal'.replace('Modal', 'Form'));
+    const form = document.getElementById('addOrderForm');
     
     modal.style.display = 'flex';
     if (form) {
         form.reset();
-        storeModalState('addOrderModal', form);
+        
+        // Auto-generate order code
+        const orderCode = generateOrderCode();
+        document.getElementById('addOrderCode').value = orderCode;
+        
+        // Set today's date
+        const today = new Date().toISOString().slice(0, 10);
+        form.querySelector('input[name="ngay_tao"]').value = today;
+        
+        // Clear product search
+        const productSearch = document.getElementById('productSearch');
+        if (productSearch) {
+            productSearch.value = '';
+        }
+        
+        // Reset selected product and quantity message
+        selectedProduct = null;
+        const quantityMessage = document.getElementById('quantityMessage');
+        if (quantityMessage) {
+            quantityMessage.style.display = 'none';
+        }
+        
+        // Reset total amount
+        const totalDisplay = document.getElementById('add_tong_tien_display');
+        const totalHidden = document.getElementById('add_tong_tien');
+        if (totalDisplay) totalDisplay.value = '0';
+        if (totalHidden) totalHidden.value = '0';
+        
+        // Setup customer dropdown events
+        setTimeout(() => {
+            setupAddCustomerDropdownEvents();
+            // Populate customer list after setup
+            populateAddCustomerList();
+        }, 100);
+        
+        // Setup product dropdown events
+        setTimeout(() => {
+            setupProductDropdownEvents();
+            // Populate product list after setup
+            populateProductList();
+        }, 100);
+        
+        // Setup quantity change listener for auto-calculation
+        const quantityInput = form.querySelector('input[name="so_luong"]');
+        if (quantityInput) {
+            quantityInput.addEventListener('input', autoCalculateTotal);
+        }
+        
+        // storeModalState('addOrderModal', form); // Removed as per new_code
     }
 }
 
 function closeAddOrderModal() {
-    document.getElementById('addOrderModal').style.display = 'none';
-    clearModalState('addOrderModal');
-    loadOrdersData();
-    showSuccessMessage('Thêm thành công!');
+    closeModalWithConfirmation('addOrderModal');
 }
 
 function editOrder(id) {
@@ -679,10 +1470,7 @@ function editOrder(id) {
         document.getElementById('edit_tong_tien_display').value = tongTien.toLocaleString();
         
         // Store initial state for edit modal
-        storeModalState('editOrderModal', form);
-        
-        // Store initial state for edit modal
-        storeModalState('editOrderModal', form);
+        // storeModalState('editOrderModal', form); // Removed as per new_code
         
         document.getElementById('editOrderModal').style.display = 'flex';
     }
@@ -696,6 +1484,37 @@ async function createOrder() {
     const form = document.getElementById('addOrderForm');
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
+    
+    // Validation
+    if (!data.ma_don_hang || data.ma_don_hang.trim() === '') {
+        showErrorMessage('Mã đơn hàng không được để trống');
+        return;
+    }
+    
+    if (!data.thong_tin_kh || data.thong_tin_kh.trim() === '') {
+        showErrorMessage('Thông tin khách hàng không được để trống');
+        return;
+    }
+    
+    if (!data.so_luong || parseInt(data.so_luong) <= 0) {
+        showErrorMessage('Số lượng phải lớn hơn 0');
+        return;
+    }
+    
+    if (!data.tong_tien || parseInt(data.tong_tien) <= 0) {
+        showErrorMessage('Tổng tiền phải lớn hơn 0');
+        return;
+    }
+    
+    if (!data.hinh_thuc_tt || data.hinh_thuc_tt.trim() === '') {
+        showErrorMessage('Vui lòng chọn hình thức thanh toán');
+        return;
+    }
+    
+    if (!data.trang_thai || data.trang_thai.trim() === '') {
+        showErrorMessage('Vui lòng chọn trạng thái đơn hàng');
+        return;
+    }
     
     // Convert numeric fields
     data.so_luong = parseInt(data.so_luong || '0');
@@ -714,7 +1533,7 @@ async function createOrder() {
         const result = await response.json();
         if (result.success) {
             document.getElementById('addOrderModal').style.display = 'none';
-            clearModalState('addOrderModal');
+            // clearModalState('addOrderModal'); // Removed as per new_code
             loadOrdersData();
             showSuccessMessage('Tạo đơn hàng thành công!');
         } else {
@@ -749,8 +1568,8 @@ async function updateOrder() {
         const result = await response.json();
         if (result.success) {
             document.getElementById('editOrderModal').style.display = 'none';
-            clearModalState('editOrderModal');
-            loadOrderData();
+            // clearModalState('editOrderModal'); // Removed as per new_code
+            loadOrdersData();
             showSuccessMessage('Cập nhật thành công!');
         } else {
             showErrorMessage(result.message || 'Có lỗi xảy ra khi cập nhật đơn hàng');
@@ -783,8 +1602,8 @@ async function confirmDeleteOrder() {
         
         const result = await response.json();
         if (result.success) {
-            document.getElementById('DeleteOrderModal').style.display = 'none';
-            clearModalState('DeleteOrderModal');
+            document.getElementById('deleteOrderModal').style.display = 'none';
+            // clearModalState('deleteOrderModal'); // Removed as per new_code
             loadOrdersData();
             showSuccessMessage('Xóa đơn hàng thành công!');
     } else { 
