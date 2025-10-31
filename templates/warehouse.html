@@ -444,8 +444,8 @@ async function loadWarehouseData() {
 function updateStatistics() {
     const totalWarehouses = new Set(warehouseData.map(w => w.ma_kho)).size;
     const totalProducts = warehouseData.length;
-    const inStockProducts = warehouseData.filter(w => w.trang_thai === 'Còn hàng').length;
-    const outOfStockProducts = warehouseData.filter(w => w.trang_thai === 'Hết hàng').length;
+    const inStockProducts = warehouseData.filter(w => w.so_luong > 0).length;
+    const outOfStockProducts = warehouseData.filter(w => w.so_luong <= 0).length;
     
     document.getElementById('totalWarehouses').textContent = totalWarehouses;
     document.getElementById('totalProducts').textContent = totalProducts;
@@ -465,16 +465,17 @@ async function createWarehouse(e) {
     const payload = {
         ma_kho: raw.ma_kho,
         ten_kho: raw.ten_kho,
+        ma_sp: raw.ma_sp,
+        gia_nhap: parseInt(document.getElementById('create_gia_nhap').value || '0'),
+        so_luong: parseInt(raw.so_luong || '0'),
         dia_chi: (raw.dia_chi || '').toString(),
         dien_thoai: (function(){
             const code = (document.getElementById('phoneCountry')?.value || '+84');
             const local = (raw.dien_thoai_local || '').replace(/[^0-9]/g, '');
             return local ? `${code}${local}` : undefined;
         })(),
-        so_luong_sp: parseInt(raw.so_luong || '0'),
-        trang_thai: 'Hoạt động',
-        nhom_san_pham: undefined,
-        mo_ta: raw.ghi_chu || undefined,
+        ghi_chu: raw.ghi_chu || undefined,
+        trang_thai: 'active',
     };
 
     try {
