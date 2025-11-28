@@ -90,16 +90,7 @@ Quản lý thông tin khách hàng, theo dõi tài khoản và trạng thái ho�
     </div>
 </div>
 
-<!-- Tabs -->
-<div class="tabs-container" style="margin-top: var(--spacing-4);">
-    <div class="tabs">
-        <button class="tab active" data-tab="list">Danh sách</button>
-        <button class="tab" data-tab="debts">Công nợ</button>
-        <button class="tab" data-tab="leaderboard">Xếp hạng</button>
-    </div>
-</div>
-
-<!-- Customer Table (List Tab) -->
+<!-- Customer Table -->
 <div id="customersListSection" class="table-container">
     <div class="card">
         <div class="card-header">
@@ -111,8 +102,8 @@ Quản lý thông tin khách hàng, theo dõi tài khoản và trạng thái ho�
                     <tr>
                         <th>STT</th>
                         <th>Tên khách hàng</th>
-                        <th>Tk nợ</th>
-                        <th>Tk có</th>
+                        <th>Mã khách hàng</th>
+                        <th>Ngày sinh</th>
                         <th>Email</th>
                         <th>Số điện thoại</th>
                         <th>Địa chỉ</th>
@@ -133,56 +124,6 @@ Quản lý thông tin khách hàng, theo dõi tài khoản và trạng thái ho�
     <!-- Pagination will be generated here -->
 </div>
 
-<!-- Debts Tab -->
-<div id="debtsSection" class="table-container" style="display: none;">
-    <div class="card">
-        <div class="card-header">
-            <h3>Công nợ khách hàng</h3>
-        </div>
-        <div class="card-body p-0">
-            <table class="table" id="debtsTable">
-                <thead>
-                    <tr>
-                        <th>STT</th>
-                        <th>Tên khách hàng</th>
-                        <th>Số đơn</th>
-                        <th>Tổng SL mua</th>
-                        <th>Tổng giá trị</th>
-                        <th>Công nợ</th>
-                    </tr>
-                </thead>
-                <tbody id="debtsTableBody">
-                    <!-- Debts data -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- Leaderboard Tab -->
-<div id="leaderboardSection" class="table-container" style="display: none;">
-    <div class="card">
-        <div class="card-header">
-            <h3>Bảng xếp hạng khách hàng theo số lượng mua</h3>
-        </div>
-        <div class="card-body p-0">
-            <table class="table" id="leaderboardTable">
-                <thead>
-                    <tr>
-                        <th>Hạng</th>
-                        <th>Tên khách hàng</th>
-                        <th>Tổng SL mua</th>
-                        <th>Số đơn</th>
-                        <th>Tổng giá trị</th>
-                    </tr>
-                </thead>
-                <tbody id="leaderboardTableBody">
-                    <!-- Leaderboard data -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
 
 <!-- Add Customer Modal -->
 <div class="modal-overlay" id="addCustomerModal" style="display: none;">
@@ -206,25 +147,35 @@ Quản lý thông tin khách hàng, theo dõi tài khoản và trạng thái ho�
                     </div>
                     <div class="form-group">
                         <label class="form-label">Số điện thoại</label>
-                        <input type="tel" class="form-input" name="so_dt" placeholder="Nhập số điện thoại">
+                        <input type="tel" class="form-input" data-phone name="so_dt" placeholder="Nhập số điện thoại">
                     </div>
                 </div>
 
                 <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Mã khách hàng</label>
+                        <div class="input-with-info">
+                            <input type="text" class="form-input" name="ma_khach_hang" placeholder="Nhập mã khách hàng">
+                            <span class="input-info-icon">i</span>
+                            <div class="input-info-tooltip">
+                                <strong>Gợi ý đặt mã khách hàng:</strong><br>
+                                • Khách mua hàng bình thường: <strong>KH-HCM01</strong><br>
+                                &nbsp;&nbsp;(HCM là mã khu vực, 01 là mã shop)<br>
+                                • Đối với doanh nghiệp: Thay chữ <strong>KH</strong> thành <strong>DN</strong><br>
+                                &nbsp;&nbsp;Ví dụ: <strong>DN-HCM01</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ngày sinh</label>
+                        <input type="date" class="form-input" name="ngay_sinh" placeholder="Chọn ngày sinh">
+                    </div>
                     <div class="form-group">
                         <label class="form-label">Trạng thái</label>
                         <select class="form-select" name="trang_thai">
                             <option value="true">Hoạt động</option>
                             <option value="false">Không hoạt động</option>
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Tk nợ</label>
-                        <input type="text" class="form-input" name="tk_no" placeholder="Nhập tài khoản nợ">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Tk có</label>
-                        <input type="text" class="form-input" name="tk_co" placeholder="Nhập tài khoản có">
                     </div>
                 </div>
                 
@@ -265,25 +216,35 @@ Quản lý thông tin khách hàng, theo dõi tài khoản và trạng thái ho�
                     </div>
                     <div class="form-group">
                         <label class="form-label">Số điện thoại</label>
-                        <input type="tel" class="form-input" name="so_dt">
+                        <input type="tel" class="form-input" data-phone name="so_dt">
                     </div>
                 </div>
                 
                 <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Mã khách hàng</label>
+                        <div class="input-with-info">
+                            <input type="text" class="form-input" name="ma_khach_hang">
+                            <span class="input-info-icon">i</span>
+                            <div class="input-info-tooltip">
+                                <strong>Gợi ý đặt mã khách hàng:</strong><br>
+                                • Khách mua hàng bình thường: <strong>KH-HCM01</strong><br>
+                                &nbsp;&nbsp;(HCM là mã khu vực, 01 là mã shop)<br>
+                                • Đối với doanh nghiệp: Thay chữ <strong>KH</strong> thành <strong>DN</strong><br>
+                                &nbsp;&nbsp;Ví dụ: <strong>DN-HCM01</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ngày sinh</label>
+                        <input type="date" class="form-input" name="ngay_sinh">
+                    </div>
                     <div class="form-group">
                         <label class="form-label">Trạng thái</label>
                         <select class="form-select" name="trang_thai">
                             <option value="true">Hoạt động</option>
                             <option value="false">Không hoạt động</option>
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Tk nợ</label>
-                        <input type="text" class="form-input" name="tk_no">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Tk có</label>
-                        <input type="text" class="form-input" name="tk_co">
                     </div>
                 </div>
                 
@@ -327,17 +288,13 @@ Quản lý thông tin khách hàng, theo dõi tài khoản và trạng thái ho�
 let customersData = [];
 let filteredCustomers = [];
 let currentPage = 1;
-const itemsPerPage = 10;
+const itemsPerPage = 20; // Popup modal: 20 items per page
 let deleteCustomerId = null;
-let ordersData = [];
-let currentTab = 'list';
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     loadCustomersData();
-    loadOrdersData();
     setupEventListeners();
-    setupTabs();
 });
 
 // Setup event listeners
@@ -346,149 +303,32 @@ function setupEventListeners() {
     document.getElementById('customerStatusFilter').addEventListener('change', filterCustomers);
 }
 
-// Tabs setup
-function setupTabs() {
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => switchTab(tab.dataset.tab));
-    });
-}
-
-function switchTab(tab) {
-    currentTab = tab;
-    // Toggle active state
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
-
-    // Show/hide sections
-    document.getElementById('customersListSection').style.display = (tab === 'list') ? '' : 'none';
-    document.getElementById('customersPagination').style.display = (tab === 'list') ? '' : 'none';
-    document.getElementById('debtsSection').style.display = (tab === 'debts') ? '' : 'none';
-    document.getElementById('leaderboardSection').style.display = (tab === 'leaderboard') ? '' : 'none';
-
-    if (tab === 'debts') {
-        renderDebts();
-    } else if (tab === 'leaderboard') {
-        renderLeaderboard();
-    }
-}
-
-// Load orders data
-async function loadOrdersData() {
-    try {
-        const response = await fetch('{{ BACKEND_URL }}/api/orders/');
-        if (response.ok) {
-            const data = await response.json();
-            // Normalize array response
-            if (Array.isArray(data)) {
-                ordersData = data;
-            } else if (data.orders && Array.isArray(data.orders)) {
-                ordersData = data.orders;
-            } else {
-                ordersData = [];
-            }
-        }
-    } catch (e) {
-        console.error('Error loading orders:', e);
-    }
-}
-
-// Compute aggregates by customer
-function computeCustomerAggregates() {
-    const aggregates = new Map();
-
-    ordersData.forEach(order => {
-        const customerName = order.customer_name || order.khach_hang || 'Khách vãng lai';
-        const items = Array.isArray(order.items) ? order.items : (order.chi_tiet || []);
-        const total = Number(order.total || order.tong_tien || 0);
-        const paid = Number(order.paid || order.da_thanh_toan || 0);
-        const debt = Math.max(0, total - paid);
-
-        let totalQty = 0;
-        items.forEach(it => {
-            const qty = Number(it.quantity || it.so_luong || 0);
-            totalQty += qty;
-        });
-
-        if (!aggregates.has(customerName)) {
-            aggregates.set(customerName, {
-                customerName,
-                orderCount: 0,
-                totalQuantity: 0,
-                totalAmount: 0,
-                totalDebt: 0
-            });
-        }
-
-        const agg = aggregates.get(customerName);
-        agg.orderCount += 1;
-        agg.totalQuantity += totalQty;
-        agg.totalAmount += total;
-        agg.totalDebt += debt;
-    });
-
-    return Array.from(aggregates.values());
-}
-
-// Render debts table
-function renderDebts() {
-    const tbody = document.getElementById('debtsTableBody');
-    const rows = computeCustomerAggregates()
-        .filter(r => r.totalDebt > 0)
-        .sort((a, b) => b.totalDebt - a.totalDebt);
-
-    if (rows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: var(--spacing-4); color: var(--gray-600);">Chưa có công nợ</td></tr>';
-        return;
-    }
-
-    tbody.innerHTML = rows.map((r, idx) => `
-        <tr>
-            <td>${idx + 1}</td>
-            <td><strong>${r.customerName}</strong></td>
-            <td>${r.orderCount}</td>
-            <td>${r.totalQuantity}</td>
-            <td>${(r.totalAmount || 0).toLocaleString('vi-VN')} VNĐ</td>
-            <td><strong style="color: var(--danger-color);">${(r.totalDebt || 0).toLocaleString('vi-VN')} VNĐ</strong></td>
-        </tr>
-    `).join('');
-}
-
-// Render leaderboard (by total quantity)
-function renderLeaderboard() {
-    const tbody = document.getElementById('leaderboardTableBody');
-    const rows = computeCustomerAggregates()
-        .sort((a, b) => b.totalQuantity - a.totalQuantity)
-        .slice(0, 100);
-
-    if (rows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: var(--spacing-4); color: var(--gray-600);">Chưa có dữ liệu xếp hạng</td></tr>';
-        return;
-    }
-
-    tbody.innerHTML = rows.map((r, idx) => `
-        <tr>
-            <td>${idx + 1}</td>
-            <td><strong>${r.customerName}</strong></td>
-            <td>${r.totalQuantity}</td>
-            <td>${r.orderCount}</td>
-            <td>${(r.totalAmount || 0).toLocaleString('vi-VN')} VNĐ</td>
-        </tr>
-    `).join('');
-}
 
 // Load customers data
 async function loadCustomersData() {
     try {
         const response = await fetch('{{ BACKEND_URL }}/api/accounts/');
         if (response.ok) {
-            customersData = await response.json();
+            const data = await response.json();
+            // Handle different response formats
+            if (Array.isArray(data)) {
+                customersData = data;
+            } else if (data.customers && Array.isArray(data.customers)) {
+                customersData = data.customers;
+            } else if (data.data && Array.isArray(data.data)) {
+                customersData = data.data;
+            } else {
+                customersData = [];
+            }
+            
+            console.log('Loaded customers:', customersData.length, customersData);
             filteredCustomers = [...customersData];
             updateStatistics();
             updateCustomerTable();
             updateCustomerPagination();
         } else {
-            console.error('Failed to load customers');
+            const errorText = await response.text();
+            console.error('Failed to load customers:', response.status, errorText);
         }
     } catch (error) {
         console.error('Error loading customers:', error);
@@ -547,12 +387,17 @@ function updateCustomerTable() {
     const endIndex = startIndex + itemsPerPage;
     const pageCustomers = filteredCustomers.slice(startIndex, endIndex);
     
+    if (pageCustomers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: var(--spacing-4); color: var(--gray-600);">Chưa có khách hàng nào</td></tr>';
+        return;
+    }
+    
     tbody.innerHTML = pageCustomers.map((customer, index) => `
         <tr>
             <td>${startIndex + index + 1}</td>
             <td><strong>${customer.ten_tk || '-'}</strong></td>
-            <td>${customer.tk_no || '-'}</td>
-            <td>${customer.tk_co || '-'}</td>
+            <td>${customer.ma_khach_hang || '-'}</td>
+            <td>${customer.ngay_sinh ? new Date(customer.ngay_sinh).toLocaleDateString('vi-VN') : '-'}</td>
             <td>${customer.email || '-'}</td>
             <td>${customer.so_dt || '-'}</td>
             <td>${customer.dia_chi || '-'}</td>
@@ -660,10 +505,16 @@ function editCustomer(id) {
         form.querySelector('input[name="id"]').value = customer.id;
         form.querySelector('input[name="ten_tk"]').value = customer.ten_tk || '';
         form.querySelector('input[name="email"]').value = customer.email || '';
-        form.querySelector('input[name="so_dt"]').value = customer.so_dt || '';
+        // Set phone value using phone component
+        const phoneInput = form.querySelector('input[data-phone][name="so_dt"]');
+        if (phoneInput && window.setPhoneValue) {
+            window.setPhoneValue(phoneInput, customer.so_dt || '');
+        } else if (phoneInput) {
+            phoneInput.value = customer.so_dt || '';
+        }
         form.querySelector('select[name="trang_thai"]').value = (customer.trang_thai || false).toString();
-        form.querySelector('input[name="tk_no"]').value = customer.tk_no || '';
-        form.querySelector('input[name="tk_co"]').value = customer.tk_co || '';
+        form.querySelector('input[name="ma_khach_hang"]').value = customer.ma_khach_hang || '';
+        form.querySelector('input[name="ngay_sinh"]').value = customer.ngay_sinh ? customer.ngay_sinh.split('T')[0] : '';
         form.querySelector('textarea[name="dia_chi"]').value = customer.dia_chi || '';
         
         storeModalState('editCustomerModal', form);
@@ -692,6 +543,9 @@ async function createCustomer() {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
     data.trang_thai = data.trang_thai === 'true';
+    // Normalize phone number
+    const phoneEl = form.querySelector('input[data-phone][name="so_dt"]');
+    if (phoneEl) data.so_dt = window.getPhoneValue(phoneEl) || '';
     
     try {
         const response = await fetch('{{ BACKEND_URL }}/api/accounts/', {
@@ -724,6 +578,9 @@ async function updateCustomer() {
     const id = data.id;
     delete data.id;
     data.trang_thai = data.trang_thai === 'true';
+    // Normalize phone number
+    const phoneEl = form.querySelector('input[data-phone][name="so_dt"]');
+    if (phoneEl) data.so_dt = window.getPhoneValue(phoneEl) || '';
     
     try {
         const response = await fetch(`{{ BACKEND_URL }}/api/accounts/${id}`, {

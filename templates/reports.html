@@ -417,7 +417,23 @@ function switchReportTab(tab) {
 // Load revenue data
 async function loadRevenueData() {
     try {
-        const response = await fetch('{{ BACKEND_URL }}/api/reports/revenue');
+        const fromDate = document.getElementById('fromDate').value;
+        const toDate = document.getElementById('toDate').value;
+        
+        // Build URL with query parameters
+        let url = '{{ BACKEND_URL }}/api/reports/revenue';
+        const params = [];
+        if (fromDate) params.push(`from_date=${encodeURIComponent(fromDate)}`);
+        if (toDate) params.push(`to_date=${encodeURIComponent(toDate)}`);
+        if (params.length > 0) {
+            url += '?' + params.join('&');
+        }
+        
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
         if (response.ok) {
             const data = await response.json();
             updateRevenueStatistics(data);
@@ -434,7 +450,11 @@ async function loadRevenueData() {
 // Load debt data
 async function loadDebtData() {
     try {
-        const response = await fetch('{{ BACKEND_URL }}/api/reports/debt');
+        const response = await fetch('{{ BACKEND_URL }}/api/reports/debt', {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
         if (response.ok) {
             const data = await response.json();
             updateDebtStatistics(data);

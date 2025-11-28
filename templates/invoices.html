@@ -157,6 +157,7 @@ Quản lý và theo dõi các hóa đơn, xử lý thanh toán và cập nhật 
     </div>
         <div class="modal-body">
             <form id="addInvoiceForm">
+                <!-- Row 1: Số hóa đơn | Ngày tạo -->
        <div class="form-row">
          <div class="form-group">
                         <label class="form-label">Số hóa đơn *</label>
@@ -168,43 +169,73 @@ Quản lý và theo dõi các hóa đơn, xử lý thanh toán và cập nhật 
          </div>
        </div>
       
+                <!-- Row 2: Tên khách hàng | Mã đơn hàng -->
+                <div class="form-row">
          <div class="form-group">
                     <label class="form-label">Tên khách hàng *</label>
                     <div class="customer-search-container">
                         <div class="search-input">
                             <i class="fas fa-search"></i>
-                            <input type="text" class="form-input" name="ten_khach_hang" id="addCustomerName" required placeholder="Tìm kiếm hoặc nhập tên khách hàng" autocomplete="off" onkeypress="handleAddCustomerKeypress(event)">
+                                <input type="text" class="form-input" name="ten_khach_hang" id="addCustomerName" required placeholder="Tìm kiếm hoặc nhập tên khách hàng" autocomplete="off" onkeypress="handleAddCustomerKeypress(event)" onchange="handleCustomerChange()">
                         </div>
                         <!-- Custom dropdown list -->
                         <div class="customer-dropdown-list" id="addCustomerDropdownList" style="display: none;">
                             <!-- Options will be populated dynamically -->
                         </div>
                     </div>
+                        <input type="hidden" id="selectedCustomerId" name="customer_id">
        </div>
-      
-       <div class="form-row">
          <div class="form-group">
-                        <label class="form-label">Trạng thái *</label>
-                        <select class="form-select" name="trang_thai" required>
-                            <option value="">Chọn trạng thái</option>
-             <option value="Đã thanh toán">Đã thanh toán</option>
-             <option value="Chưa thanh toán">Chưa thanh toán</option>
-           </select>
+                        <label class="form-label">Mã đơn hàng</label>
+                        <div class="order-search-container">
+                            <div class="search-input">
+                                <i class="fas fa-search"></i>
+                                <input type="text" class="form-input" id="addOrderCode" placeholder="Tìm kiếm mã đơn hàng" autocomplete="off" readonly onclick="showOrderDropdown()">
+                            </div>
+                            <!-- Custom dropdown list for orders -->
+                            <div class="order-dropdown-list" id="addOrderDropdownList" style="display: none;">
+                                <!-- Options will be populated dynamically -->
+                            </div>
+                        </div>
+                        <input type="hidden" id="selectedOrderId" name="order_id">
          </div>
        </div>
       
+                <!-- Row 3: Tổng tiền | Hình thức thanh toán -->
+                <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Tổng tiền *</label>
                     <div class="money-input-container">
                         <input type="text" id="add_tong_tien_display" class="form-input" placeholder="0" oninput="formatMoneyTyping(this, document.getElementById('add_tong_tien'))">
                         <input type="hidden" name="tong_tien" id="add_tong_tien">
                         <span class="currency-unit">VNĐ</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Hình thức thanh toán *</label>
+                        <select class="form-select" name="hinh_thuc_tt" id="addHinhThucTT" required>
+                            <option value="">Chọn hình thức thanh toán</option>
+                            <option value="Tiền mặt">Tiền mặt</option>
+                            <option value="MoMo">MoMo</option>
+                            <option value="Banking">Banking</option>
+                        </select>
                     </div>
                 </div>
                 
+                <!-- Row 4: Trạng thái | Ghi chú -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Trạng thái *</label>
+                        <select class="form-select" name="trang_thai" required>
+                            <option value="">Chọn trạng thái</option>
+                            <option value="Đã thanh toán">Đã thanh toán</option>
+                            <option value="Chưa thanh toán">Chưa thanh toán</option>
+                        </select>
+                    </div>
                 <div class="form-group">
                     <label class="form-label">Ghi chú</label>
                     <textarea class="form-textarea" name="ghi_chu" rows="3" placeholder="Nhập ghi chú"></textarea>
+                    </div>
       </div>
     </form>
         </div>
@@ -244,28 +275,41 @@ Quản lý và theo dõi các hóa đơn, xử lý thanh toán và cập nhật 
                     <input type="text" class="form-input" name="ten_khach_hang" readonly>
       </div>
       
+      <!-- Row 3: Tổng tiền | Hình thức thanh toán -->
       <div class="form-row">
-        <div class="form-group">
-                        <label class="form-label">Trạng thái *</label>
-                        <select class="form-select" name="trang_thai" required>
-            <option value="Đã thanh toán">Đã thanh toán</option>
-            <option value="Chưa thanh toán">Chưa thanh toán</option>
-          </select>
-        </div>
-      </div>
-      
                 <div class="form-group">
                     <label class="form-label">Tổng tiền</label>
                     <div class="money-input-container">
-                        <input type="text" id="edit_tong_tien_display" class="form-input" readonly>
+                <input type="text" id="edit_tong_tien_display" class="form-input" oninput="formatMoneyTyping(this, document.getElementById('edit_tong_tien'))">
                         <input type="hidden" name="tong_tien" id="edit_tong_tien">
                         <span class="currency-unit">VNĐ</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Hình thức thanh toán *</label>
+            <select class="form-select" name="hinh_thuc_tt" id="editHinhThucTT" required>
+                <option value="">Chọn hình thức thanh toán</option>
+                <option value="Tiền mặt">Tiền mặt</option>
+                <option value="MoMo">MoMo</option>
+                <option value="Banking">Banking</option>
+            </select>
   </div>
 </div>
 
+      <!-- Row 4: Trạng thái | Ghi chú -->
+      <div class="form-row">
+        <div class="form-group">
+            <label class="form-label">Trạng thái *</label>
+            <select class="form-select" name="trang_thai" required>
+                <option value="">Chọn trạng thái</option>
+                <option value="Đã thanh toán">Đã thanh toán</option>
+                <option value="Chưa thanh toán">Chưa thanh toán</option>
+            </select>
+        </div>
                 <div class="form-group">
                     <label class="form-label">Ghi chú</label>
-                    <textarea class="form-textarea" name="ghi_chu" rows="3"></textarea>
+            <textarea class="form-textarea" name="ghi_chu" rows="3" placeholder="Nhập ghi chú (tùy chọn)"></textarea>
+        </div>
     </div>
             </form>
     </div>
@@ -295,6 +339,30 @@ Quản lý và theo dõi các hóa đơn, xử lý thanh toán và cập nhật 
     </div>
   </div>
 </div>
+
+<!-- View Invoice Details Modal -->
+<div class="modal-overlay" id="viewInvoiceDetailsModal" style="display: none;">
+    <div class="modal modal-large">
+        <div class="modal-header">
+            <h3><i class="fas fa-file-invoice"></i> Chi tiết hóa đơn</h3>
+            <button class="modal-close" onclick="closeViewInvoiceDetailsModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div id="invoiceDetailsContent">
+                <!-- Invoice details will be loaded here -->
+                <div style="text-align: center; padding: var(--spacing-6);">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2em; color: var(--primary-color);"></i>
+                    <p style="margin-top: var(--spacing-2);">Đang tải chi tiết hóa đơn...</p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeViewInvoiceDetailsModal()">Đóng</button>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -303,7 +371,7 @@ Quản lý và theo dõi các hóa đơn, xử lý thanh toán và cập nhật 
 let invoicesData = [];
 let filteredInvoices = [];
 let currentPage = 1;
-const itemsPerPage = 10;
+const itemsPerPage = 20; // Popup modal: 20 items per page
 let deleteInvoiceId = null;
 let currentStatus = 'all';
 let customersData = [];
@@ -391,7 +459,6 @@ function populateCustomerList(searchTerm = '') {
     allCustomersDiv.innerHTML = '<strong>Tất cả khách hàng</strong>';
     allCustomersDiv.onclick = function() {
         selectCustomer('');
-        toggleDropdown();
     };
     dropdownList.appendChild(allCustomersDiv);
     
@@ -404,7 +471,6 @@ function populateCustomerList(searchTerm = '') {
         customCustomerDiv.innerHTML = `<strong>Thêm khách hàng: "${searchTerm}"</strong><small>Nhấn Enter để sử dụng</small>`;
         customCustomerDiv.onclick = function() {
             selectCustomer(searchTerm);
-            toggleDropdown();
         };
         dropdownList.appendChild(customCustomerDiv);
         
@@ -432,7 +498,6 @@ function populateCustomerList(searchTerm = '') {
             item.innerHTML = displayText;
             item.onclick = function() {
                 selectCustomer(name);
-                toggleDropdown();
             };
             
             dropdownList.appendChild(item);
@@ -463,11 +528,9 @@ function handleCustomerKeypress(event) {
         if (searchTerm) {
             // If user typed something, use that as customer name
             selectCustomer(searchTerm);
-            toggleDropdown();
         } else {
             // If empty, select "Tất cả khách hàng"
             selectCustomer('');
-            toggleDropdown();
         }
     }
 }
@@ -482,11 +545,9 @@ function handleAddCustomerKeypress(event) {
         if (searchTerm) {
             // If user typed something, use that as customer name
             selectAddCustomer(searchTerm);
-            toggleAddDropdown();
         } else {
             // If empty, select "Khách vãng lai"
             selectAddCustomer('Khách vãng lai');
-            toggleAddDropdown();
         }
     }
 }
@@ -532,10 +593,47 @@ function selectAddCustomer(customerName) {
         customerInput.value = customerName;
     }
     
+    // Find customer ID from customersData
+    const customer = customersData.find(c => c.ten_tk === customerName);
+    if (customer) {
+        document.getElementById('selectedCustomerId').value = customer.id;
+    } else {
+        document.getElementById('selectedCustomerId').value = '';
+    }
+    
+    // Reset order code when customer changes
+    document.getElementById('addOrderCode').value = '';
+    document.getElementById('selectedOrderId').value = '';
+    document.getElementById('add_tong_tien_display').value = '';
+    document.getElementById('add_tong_tien').value = '';
+    
     // Close dropdown
     const dropdown = document.getElementById('addCustomerDropdownList');
     if (dropdown) {
         dropdown.style.display = 'none';
+    }
+}
+
+// Handle customer change
+function handleCustomerChange() {
+    const customerName = document.getElementById('addCustomerName').value;
+    const customer = customersData.find(c => c.ten_tk === customerName);
+    if (customer) {
+        document.getElementById('selectedCustomerId').value = customer.id;
+    } else {
+        document.getElementById('selectedCustomerId').value = '';
+    }
+    
+    // Reset order code when customer changes
+    document.getElementById('addOrderCode').value = '';
+    document.getElementById('selectedOrderId').value = '';
+    document.getElementById('add_tong_tien_display').value = '';
+    document.getElementById('add_tong_tien').value = '';
+    
+    // Close order dropdown if open
+    const orderDropdown = document.getElementById('addOrderDropdownList');
+    if (orderDropdown) {
+        orderDropdown.style.display = 'none';
     }
 }
 
@@ -585,7 +683,6 @@ function populateAddCustomerList(searchTerm = '') {
         customCustomerDiv.innerHTML = `<strong>Thêm khách hàng: "${searchTerm}"</strong><small>Nhấn Enter để sử dụng</small>`;
         customCustomerDiv.onclick = function() {
             selectAddCustomer(searchTerm);
-            toggleAddDropdown();
         };
         dropdownList.appendChild(customCustomerDiv);
         
@@ -613,7 +710,6 @@ function populateAddCustomerList(searchTerm = '') {
             item.innerHTML = displayText;
             item.onclick = function() {
                 selectAddCustomer(name);
-                toggleAddDropdown();
             };
             
             dropdownList.appendChild(item);
@@ -915,6 +1011,12 @@ function updateInvoicesTable() {
             <td>${getStatusBadge(invoice.trang_thai)}</td>
             <td>
                 <div class="table-actions">
+                    <button class="btn btn-sm btn-primary" onclick="viewInvoiceDetails(${invoice.id})">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-info" onclick="editInvoice(${invoice.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
                     <button class="btn btn-sm btn-danger" onclick="deleteInvoice(${invoice.id})">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -990,7 +1092,7 @@ function goToPage(page) {
 }
 
 // Modal functions
-function openAddInvoiceModal() {
+async function openAddInvoiceModal() {
     const modal = document.getElementById('addInvoiceModal');
     const form = document.getElementById('addInvoiceForm');
     
@@ -998,6 +1100,44 @@ function openAddInvoiceModal() {
     form.reset();
     document.getElementById('add_tong_tien_display').value = '';
     document.getElementById('add_tong_tien').value = '';
+    document.getElementById('selectedCustomerId').value = '';
+    document.getElementById('selectedOrderId').value = '';
+    document.getElementById('addOrderCode').value = '';
+    
+    // Auto-generate invoice number
+    try {
+        const nextNumberResponse = await fetch('{{ BACKEND_URL }}/api/invoices/next-number', {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
+        if (nextNumberResponse.ok) {
+            const nextNumberData = await nextNumberResponse.json();
+            const invoiceNumberInput = form.querySelector('input[name="so_hoa_don"]');
+            if (invoiceNumberInput && nextNumberData.full_invoice_number) {
+                invoiceNumberInput.value = nextNumberData.full_invoice_number;
+            }
+        }
+    } catch (error) {
+        console.warn('Could not get next invoice number:', error);
+        // Fallback: generate manually
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2, '0');
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const yy = String(today.getFullYear()).slice(-2);
+        const dateStr = dd + mm + yy;
+        const invoiceNumberInput = form.querySelector('input[name="so_hoa_don"]');
+        if (invoiceNumberInput) {
+            invoiceNumberInput.value = `HĐ-${dateStr}-001`;
+        }
+    }
+    
+    // Set today's date as default
+    const todayInput = form.querySelector('input[name="ngay_tao"]');
+    if (todayInput) {
+        const today = new Date();
+        todayInput.value = today.toISOString().split('T')[0];
+    }
     
     // Setup add customer dropdown events when modal opens
     setTimeout(() => {
@@ -1017,8 +1157,41 @@ function closeAddInvoiceModal() {
 }
 
 function editInvoice(id) {
-    // Edit function removed - no longer needed
-    console.log('Edit function removed');
+    const invoice = invoicesData.find(i => i.id === id);
+    if (invoice) {
+        const form = document.getElementById('editInvoiceForm');
+        form.querySelector('input[name="id"]').value = invoice.id;
+        form.querySelector('input[name="so_hoa_don"]').value = invoice.so_hd || '';
+        
+        // Set date
+        if (invoice.ngay_hd) {
+            form.querySelector('input[name="ngay_tao"]').value = invoice.ngay_hd;
+        }
+        
+        // Set customer name (readonly)
+        form.querySelector('input[name="ten_khach_hang"]').value = invoice.nguoi_mua || '';
+        
+        // Set status
+        form.querySelector('select[name="trang_thai"]').value = invoice.trang_thai || '';
+        
+        // Set total amount
+        const tongTien = invoice.tong_tien || 0;
+        document.getElementById('edit_tong_tien').value = tongTien;
+        document.getElementById('edit_tong_tien_display').value = tongTien.toLocaleString();
+        
+        // Set payment method if available
+        if (invoice.hinh_thuc_tt) {
+            const hinhThucTTSelect = form.querySelector('select[name="hinh_thuc_tt"]');
+            if (hinhThucTTSelect) {
+                hinhThucTTSelect.value = invoice.hinh_thuc_tt;
+            }
+        }
+        
+        // Store initial state for edit modal
+        storeModalState('editInvoiceModal', form);
+        
+        document.getElementById('editInvoiceModal').style.display = 'flex';
+    }
 }
 
 function closeEditInvoiceModal() {
@@ -1036,7 +1209,8 @@ async function createInvoice() {
         ngay_hd: data.ngay_tao,
         nguoi_mua: data.ten_khach_hang,
         tong_tien: parseInt(document.getElementById('add_tong_tien').value || '0'),
-        trang_thai: data.trang_thai
+        trang_thai: data.trang_thai,
+        hinh_thuc_tt: data.hinh_thuc_tt || null
     };
     
     try {
@@ -1075,7 +1249,8 @@ async function updateInvoice() {
         ngay_hd: data.ngay_tao,
         nguoi_mua: data.ten_khach_hang,
         tong_tien: parseInt(document.getElementById('edit_tong_tien').value || '0'),
-        trang_thai: data.trang_thai
+        trang_thai: data.trang_thai,
+        hinh_thuc_tt: data.hinh_thuc_tt || null
     };
     
     try {
@@ -1136,44 +1311,313 @@ async function confirmDeleteInvoice() {
     }
 }
 
-// Utility functions
-function getStatusBadge(status) {
-    const badges = {
-        'Đã thanh toán': '<span class="badge badge-success">Đã thanh toán</span>',
-        'Chưa thanh toán': '<span class="badge badge-warning">Chưa thanh toán</span>'
-    };
-    return badges[status] || '<span class="badge badge-secondary">Không xác định</span>';
+// Utility functions - đã được định nghĩa trong utils.js
+// Các hàm formatMoneyTyping, debounce, showSuccessMessage, showErrorMessage đã có trong utils.js
+
+// View invoice details
+async function viewInvoiceDetails(invoiceId) {
+    const modal = document.getElementById('viewInvoiceDetailsModal');
+    const content = document.getElementById('invoiceDetailsContent');
+    
+    modal.style.display = 'flex';
+    
+    // Show loading
+    content.innerHTML = `
+        <div style="text-align: center; padding: var(--spacing-6);">
+            <i class="fas fa-spinner fa-spin" style="font-size: 2em; color: var(--primary-color);"></i>
+            <p style="margin-top: var(--spacing-2);">Đang tải chi tiết hóa đơn...</p>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch(`{{ BACKEND_URL }}/api/invoices/${invoiceId}/details`, {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const invoice = data.invoice;
+            const items = data.items || [];
+            
+            let itemsHTML = '';
+            if (items.length === 0) {
+                itemsHTML = '<tr><td colspan="6" style="text-align: center; padding: var(--spacing-4); color: var(--gray-500);">Không có sản phẩm nào trong hóa đơn này</td></tr>';
+            } else {
+                itemsHTML = items.map((item, index) => `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td><strong>${item.product_code || '-'}</strong></td>
+                        <td>${item.product_name || '-'}</td>
+                        <td>${item.so_luong || 0}</td>
+                        <td>${(item.don_gia || 0).toLocaleString()} VNĐ</td>
+                        <td style="font-weight: 600; color: var(--primary-color);">${(item.total_price || 0).toLocaleString()} VNĐ</td>
+                    </tr>
+                `).join('');
+            }
+            
+            content.innerHTML = `
+                <div class="invoice-details-container">
+                    <div class="invoice-header-info" style="background: var(--gray-50); padding: var(--spacing-4); border-radius: var(--radius-md); margin-bottom: var(--spacing-4);">
+                        <div class="invoice-info-row" style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-2);">
+                            <div>
+                                <span style="font-weight: 600; color: var(--gray-700);">Số hóa đơn:</span>
+                                <span style="font-weight: 700; color: var(--primary-color); font-size: 1.1em; margin-left: var(--spacing-2);">${invoice.so_hd || '-'}</span>
+                            </div>
+                            <div>
+                                <span style="font-weight: 600; color: var(--gray-700);">Ngày:</span>
+                                <span style="margin-left: var(--spacing-2);">${invoice.ngay_hd || '-'}</span>
+                            </div>
+                        </div>
+                        <div class="invoice-info-row" style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-2);">
+                            <div>
+                                <span style="font-weight: 600; color: var(--gray-700);">Khách hàng:</span>
+                                <span style="margin-left: var(--spacing-2);">${invoice.nguoi_mua || '-'}</span>
+                            </div>
+                            <div>
+                                <span style="font-weight: 600; color: var(--gray-700);">Trạng thái:</span>
+                                <span style="margin-left: var(--spacing-2);">${getStatusBadge(invoice.trang_thai)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h4 style="margin-bottom: var(--spacing-3); color: var(--gray-900);">
+                        <i class="fas fa-boxes"></i> Danh sách sản phẩm
+                    </h4>
+                    
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Mã SP</th>
+                                    <th>Tên sản phẩm</th>
+                                    <th>Số lượng</th>
+                                    <th>Đơn giá</th>
+                                    <th>Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itemsHTML}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="invoice-total-section" style="margin-top: var(--spacing-4); padding-top: var(--spacing-4); border-top: 2px solid var(--gray-300);">
+                        <div style="display: flex; justify-content: flex-end;">
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.2em; font-weight: 700; color: var(--primary-color);">
+                                    Tổng tiền: ${(invoice.tong_tien || 0).toLocaleString()} VNĐ
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            const error = await response.json();
+            content.innerHTML = `
+                <div style="text-align: center; padding: var(--spacing-6);">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2em; color: var(--danger-color);"></i>
+                    <p style="margin-top: var(--spacing-2); color: var(--danger-color);">${error.detail || 'Không thể tải chi tiết hóa đơn'}</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading invoice details:', error);
+        content.innerHTML = `
+            <div style="text-align: center; padding: var(--spacing-6);">
+                <i class="fas fa-exclamation-triangle" style="font-size: 2em; color: var(--danger-color);"></i>
+                <p style="margin-top: var(--spacing-2); color: var(--danger-color);">Đã xảy ra lỗi khi tải chi tiết hóa đơn</p>
+            </div>
+        `;
+    }
 }
 
-function formatMoneyTyping(sourceInput, hiddenInput) {
-    const raw = (sourceInput.value || '').replace(/[^0-9]/g, '');
-    if (!raw) {
-        sourceInput.value = '';
-        if (hiddenInput) hiddenInput.value = '';
+function closeViewInvoiceDetailsModal() {
+    document.getElementById('viewInvoiceDetailsModal').style.display = 'none';
+}
+
+// Order search functionality
+let ordersData = [];
+
+// Show order dropdown
+async function showOrderDropdown() {
+    const customerId = document.getElementById('selectedCustomerId').value;
+    const customerName = document.getElementById('addCustomerName').value;
+    
+    if (!customerId && !customerName) {
+        showErrorMessage('Vui lòng chọn khách hàng trước');
         return;
     }
-    if (hiddenInput) hiddenInput.value = raw;
-    sourceInput.value = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    
+    const dropdown = document.getElementById('addOrderDropdownList');
+    if (!dropdown) return;
+    
+    // Show loading
+    dropdown.innerHTML = '<div class="customer-dropdown-item"><small>Đang tải...</small></div>';
+    dropdown.style.display = 'block';
+    
+    try {
+        // Find customer ID if we only have name
+        let searchCustomerId = customerId;
+        let searchCustomerName = customerName;
+        
+        if (!searchCustomerId && customerName) {
+            const customer = customersData.find(c => c.ten_tk === customerName);
+            if (customer) {
+                searchCustomerId = customer.id;
+                searchCustomerName = customer.ten_tk;
+            }
+        } else if (searchCustomerId && !searchCustomerName) {
+            // If we have ID but not name, find name from customersData
+            const customer = customersData.find(c => c.id == searchCustomerId);
+            if (customer) {
+                searchCustomerName = customer.ten_tk;
+            }
+        }
+        
+        // Build query parameters
+        const params = new URLSearchParams();
+        if (searchCustomerId) {
+            params.append('customer_id', searchCustomerId);
+        }
+        if (searchCustomerName && searchCustomerName !== 'Khách vãng lai') {
+            params.append('customer_name', searchCustomerName);
+        }
+        
+        // Fetch orders for this customer
+        const url = `{{ BACKEND_URL }}/api/orders/search?${params.toString()}`;
+        console.log('Fetching orders from:', url);
+        
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
+        
+        if (response.ok) {
+            ordersData = await response.json();
+            console.log('Loaded orders:', ordersData);
+            populateOrderDropdown(ordersData);
+        } else {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            dropdown.innerHTML = '<div class="customer-dropdown-item"><small style="color: var(--danger-color);">Không thể tải danh sách đơn hàng</small></div>';
+        }
+    } catch (error) {
+        console.error('Error loading orders:', error);
+        dropdown.innerHTML = '<div class="customer-dropdown-item"><small style="color: var(--danger-color);">Đã xảy ra lỗi khi tải đơn hàng: ' + error.message + '</small></div>';
+    }
 }
 
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
+// Populate order dropdown
+function populateOrderDropdown(orders) {
+    const dropdown = document.getElementById('addOrderDropdownList');
+    if (!dropdown) return;
+    
+    dropdown.innerHTML = '';
+    
+    if (orders.length === 0) {
+        const noResult = document.createElement('div');
+        noResult.className = 'customer-dropdown-item';
+        noResult.innerHTML = '<small style="color: var(--gray-500);">Không có đơn hàng nào</small>';
+        dropdown.appendChild(noResult);
+        return;
+    }
+    
+    orders.forEach(order => {
+        const item = document.createElement('div');
+        item.className = 'customer-dropdown-item';
+        item.dataset.orderId = order.id;
+        item.dataset.orderCode = order.ma_don_hang;
+        
+        // Lấy tổng tiền từ order, đảm bảo là số
+        const orderTotal = parseFloat(order.tong_tien) || 0;
+        item.dataset.totalAmount = orderTotal;
+        
+        let displayText = `<strong>${order.ma_don_hang}</strong>`;
+        if (orderTotal > 0) {
+            displayText += `<small>Tổng tiền: ${orderTotal.toLocaleString()} VNĐ</small>`;
+        } else {
+            displayText += `<small style="color: var(--gray-500);">Chưa có tổng tiền</small>`;
+        }
+        
+        item.innerHTML = displayText;
+        item.onclick = function() {
+            // Truyền cả order object và totalAmount để đảm bảo có đủ thông tin
+            selectOrder(order.ma_don_hang, orderTotal);
         };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
+        
+        dropdown.appendChild(item);
+    });
 }
 
-function showSuccessMessage(message) {
-    showSuccessModal('Thành công', message);
+// Select order
+function selectOrder(orderCode, totalAmount) {
+    const orderInput = document.getElementById('addOrderCode');
+    const order = ordersData.find(o => o.ma_don_hang === orderCode);
+    
+    if (orderInput) {
+        orderInput.value = orderCode;
+    }
+    
+    if (order) {
+        document.getElementById('selectedOrderId').value = order.id;
+        
+        // Auto-fill total amount - ưu tiên tong_tien từ order object
+        let finalAmount = totalAmount || 0;
+        if (order.tong_tien && order.tong_tien > 0) {
+            finalAmount = order.tong_tien;
+        } else if (finalAmount <= 0 && order.tong_tien !== undefined) {
+            finalAmount = order.tong_tien || 0;
+        }
+        
+        // Điền tổng tiền vào form
+        if (finalAmount > 0) {
+            document.getElementById('add_tong_tien').value = finalAmount;
+            document.getElementById('add_tong_tien_display').value = finalAmount.toLocaleString();
+        } else {
+            // Nếu không có tổng tiền, đặt về 0
+            document.getElementById('add_tong_tien').value = 0;
+            document.getElementById('add_tong_tien_display').value = '0';
+        }
+    } else {
+        // Nếu không tìm thấy order trong ordersData, vẫn điền tổng tiền từ tham số
+        if (totalAmount > 0) {
+            document.getElementById('add_tong_tien').value = totalAmount;
+            document.getElementById('add_tong_tien_display').value = totalAmount.toLocaleString();
+        }
+    }
+    
+    // Close dropdown
+    const dropdown = document.getElementById('addOrderDropdownList');
+    if (dropdown) {
+        dropdown.style.display = 'none';
+    }
 }
 
-function showErrorMessage(message) {
-    showErrorModal('Lỗi', message);
+// Toggle order dropdown
+function toggleOrderDropdown() {
+    const dropdown = document.getElementById('addOrderDropdownList');
+    if (dropdown) {
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
 }
+
+// Close order dropdown when clicking outside
+document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('click', function(e) {
+        const orderInput = document.getElementById('addOrderCode');
+        const orderDropdown = document.getElementById('addOrderDropdownList');
+        
+        if (orderInput && orderDropdown) {
+            if (!orderInput.contains(e.target) && !orderDropdown.contains(e.target)) {
+                orderDropdown.style.display = 'none';
+            }
+        }
+    });
+});
 </script>
 {% endblock %}

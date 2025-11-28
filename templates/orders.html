@@ -126,7 +126,6 @@ Quản lý và theo dõi các đơn hàng, xử lý giao dịch và cập nhật
                         <th>Ngày tạo</th>
                         <th>Số lượng</th>
                         <th>Tổng tiền</th>
-                        <th>Hình thức TT</th>
                         <th>Trạng thái</th>
                         <th>Thao tác</th>
                     </tr>
@@ -166,8 +165,9 @@ Quản lý và theo dõi các đơn hàng, xử lý giao dịch và cập nhật
         </div>
       </div>
       
-      <div class="form-group">
-                    <label class="form-label">Thông tin khách hàng *</label>
+      <div class="form-row">
+        <div class="form-group">
+                    <label class="form-label" style="font-size: 0.9em;">Thông tin khách hàng *</label>
                     <div class="customer-search-container">
                         <div class="search-input">
                             <i class="fas fa-search"></i>
@@ -178,10 +178,9 @@ Quản lý và theo dõi các đơn hàng, xử lý giao dịch và cập nhật
                             <!-- Options will be populated dynamically -->
                         </div>
                     </div>
-      </div>
-      
-      <div class="form-group">
-                    <label class="form-label">Sản phẩm/Bảng giá</label>
+        </div>
+        <div class="form-group">
+                    <label class="form-label" style="font-size: 0.9em;">Sản phẩm/Bảng giá</label>
                     <div class="product-search-container">
                         <div class="search-input">
                             <i class="fas fa-search"></i>
@@ -192,6 +191,7 @@ Quản lý và theo dõi các đơn hàng, xử lý giao dịch và cập nhật
                             <!-- Options will be populated dynamically -->
                         </div>
                     </div>
+        </div>
       </div>
       
               <div class="form-row">
@@ -206,25 +206,14 @@ Quản lý và theo dõi các đơn hàng, xử lý giao dịch và cập nhật
           </div>
       </div>
       
-          <div class="form-group">
-                    <label class="form-label">Tổng tiền *</label>
+      <div class="form-row">
+        <div class="form-group">
+                    <label class="form-label" style="font-size: 0.9em;">Tổng tiền *</label>
                     <div class="money-input-container">
                         <input type="text" id="add_tong_tien_display" class="form-input" placeholder="0" oninput="formatMoneyTyping(this, document.getElementById('add_tong_tien'))">
                         <input type="hidden" name="tong_tien" id="add_tong_tien">
                         <span class="currency-unit">VNĐ</span>
-          </div>
-        </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-                        <label class="form-label">Hình thức thanh toán *</label>
-                        <select class="form-select" name="hinh_thuc_tt" required>
-            <option value="">Chọn hình thức thanh toán</option>
-            <option value="Tiền mặt">Tiền mặt</option>
-            <option value="Chuyển khoản">Chuyển khoản</option>
-            <option value="Thẻ tín dụng">Thẻ tín dụng</option>
-            <option value="Khác">Khác</option>
-          </select>
+                    </div>
         </div>
         <div class="form-group">
                         <label class="form-label">Trạng thái *</label>
@@ -270,44 +259,60 @@ Quản lý và theo dõi các đơn hàng, xử lý giao dịch và cập nhật
         </div>
       </div>
       
-      <div class="form-group">
-                    <label class="form-label">Thông tin khách hàng</label>
-                    <input type="text" class="form-input" name="thong_tin_kh" readonly>
+      <div class="form-row">
+        <div class="form-group">
+                    <label class="form-label" style="font-size: 0.9em;">Thông tin khách hàng *</label>
+                    <div class="customer-search-container">
+                        <div class="search-input">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="editCustomerName" class="form-input" name="thong_tin_kh" required placeholder="Tìm kiếm hoặc nhập tên khách hàng" autocomplete="off" onkeypress="handleEditCustomerKeypress(event)">
+                        </div>
+                        <!-- Custom dropdown list -->
+                        <div class="customer-dropdown-list" id="editCustomerDropdownList" style="display: none;">
+                            <!-- Options will be populated dynamically -->
+                        </div>
+                    </div>
+        </div>
+        <div class="form-group">
+                    <label class="form-label" style="font-size: 0.9em;">Sản phẩm/Bảng giá</label>
+                    <div class="product-search-container">
+                        <div class="search-input">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="editProductSearch" class="form-input" placeholder="Tìm kiếm sản phẩm hoặc bảng giá" autocomplete="off" onkeypress="handleEditProductKeypress(event)">
+                        </div>
+                        <!-- Custom dropdown list -->
+                        <div class="product-dropdown-list" id="editProductDropdownList" style="display: none;">
+                            <!-- Options will be populated dynamically -->
+                        </div>
+                    </div>
+        </div>
       </div>
       
       <div class="form-row">
         <div class="form-group">
                         <label class="form-label">Số lượng *</label>
-                        <input type="number" class="form-input" name="so_luong" min="1" required>
+                        <input type="number" class="form-input" name="so_luong" min="1" required placeholder="Nhập số lượng" oninput="validateEditQuantity(this)" onchange="validateEditQuantity(this)">
+                        <div id="editQuantityMessage" class="quantity-message" style="display: none;"></div>
         </div>
         <div class="form-group">
                         <label class="form-label">Mã số thuế</label>
-                        <input type="text" class="form-input" name="ma_co_quan_thue">
-        </div>
-      </div>
-      
-        <div class="form-group">
-                    <label class="form-label">Tổng tiền</label>
-                    <div class="money-input-container">
-                        <input type="text" id="edit_tong_tien_display" class="form-input" readonly>
-            <input type="hidden" name="tong_tien" id="edit_tong_tien">
-                        <span class="currency-unit">VNĐ</span>
+                        <input type="text" class="form-input" name="ma_co_quan_thue" placeholder="Nhập mã số thuế">
         </div>
       </div>
       
       <div class="form-row">
         <div class="form-group">
-                        <label class="form-label">Hình thức thanh toán *</label>
-                        <select class="form-select" name="hinh_thuc_tt" required>
-            <option value="Tiền mặt">Tiền mặt</option>
-            <option value="Chuyển khoản">Chuyển khoản</option>
-            <option value="Thẻ tín dụng">Thẻ tín dụng</option>
-            <option value="Khác">Khác</option>
-          </select>
+                    <label class="form-label" style="font-size: 0.9em;">Tổng tiền *</label>
+                    <div class="money-input-container">
+                        <input type="text" id="edit_tong_tien_display" class="form-input" placeholder="0" oninput="formatMoneyTyping(this, document.getElementById('edit_tong_tien'))">
+                        <input type="hidden" name="tong_tien" id="edit_tong_tien">
+                        <span class="currency-unit">VNĐ</span>
+                    </div>
         </div>
         <div class="form-group">
                         <label class="form-label">Trạng thái *</label>
                         <select class="form-select" name="trang_thai" required>
+                            <option value="">Chọn trạng thái</option>
                             <option value="cho_xu_ly">Chờ xử lý</option>
                             <option value="dang_xu_ly">Đang xử lý</option>
                             <option value="hoan_thanh">Hoàn thành</option>
@@ -623,13 +628,14 @@ Quản lý và theo dõi các đơn hàng, xử lý giao dịch và cập nhật
 let ordersData = [];
 let filteredOrders = [];
 let currentPage = 1;
-const itemsPerPage = 10;
+const itemsPerPage = 20; // Popup modal: 20 items per page
 let deleteOrderId = null;
 let currentStatus = 'all';
 let productsData = [];
 let pricesData = [];
 let customersData = [];
 let selectedProduct = null; // Store selected product for quantity validation
+let editSelectedProduct = null; // Store selected product for edit modal quantity validation
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
@@ -665,6 +671,8 @@ async function loadOrdersData() {
         const response = await fetch('{{ BACKEND_URL }}/api/orders/');
         if (response.ok) {
             ordersData = await response.json();
+            // Debug: log orders data to check tong_tien values
+            console.log('Loaded orders:', ordersData);
             filteredOrders = [...ordersData];
             updateStatistics();
             filterOrders();
@@ -740,7 +748,8 @@ function updateStatistics() {
     const totalOrders = ordersData.length;
     const pendingOrders = ordersData.filter(o => o.trang_thai === 'cho_xu_ly').length;
     const completedOrders = ordersData.filter(o => o.trang_thai === 'hoan_thanh').length;
-    const totalRevenue = ordersData.reduce((sum, order) => sum + (order.tong_tien || 0), 0);
+    // Calculate total revenue using calculateOrderTotal to handle missing/zero values
+    const totalRevenue = ordersData.reduce((sum, order) => sum + calculateOrderTotal(order), 0);
     
     document.getElementById('totalOrders').textContent = totalOrders;
     document.getElementById('pendingOrders').textContent = pendingOrders;
@@ -794,6 +803,45 @@ function clearFilters() {
     updatePagination();
 }
 
+// Calculate total amount for an order (fallback if tong_tien is 0 or missing)
+function calculateOrderTotal(order) {
+    // If tong_tien exists and is greater than 0, use it
+    if (order.tong_tien && parseFloat(order.tong_tien) > 0) {
+        return parseFloat(order.tong_tien);
+    }
+    
+    // Otherwise, try to calculate from product and quantity
+    if (order.sp_banggia && order.so_luong) {
+        // Find product by code
+        const product = productsData.find(p => p.ma_sp === order.sp_banggia);
+        const price = pricesData.find(p => p.ma_sp === order.sp_banggia);
+        
+        let unitPrice = 0;
+        if (product) {
+            // Try gia_ban first, then gia_chung
+            unitPrice = parseFloat(product.gia_ban || 0);
+            if (unitPrice === 0) {
+                unitPrice = parseFloat(product.gia_chung || 0);
+            }
+        } else if (price) {
+            unitPrice = parseFloat(price.gia_chung || 0);
+        }
+        
+        if (unitPrice > 0 && order.so_luong > 0) {
+            const calculatedTotal = unitPrice * (order.so_luong || 0);
+            // Nếu tính được tổng tiền, tự động cập nhật vào database nếu có thể
+            if (calculatedTotal > 0 && order.id) {
+                // Có thể gọi API để update tong_tien nếu cần
+                // Nhưng tạm thời chỉ trả về giá trị tính được
+            }
+            return calculatedTotal;
+        }
+    }
+    
+    // Return 0 if cannot calculate
+    return 0;
+}
+
 // Update orders table
 function updateOrdersTable() {
     const tbody = document.getElementById('ordersTableBody');
@@ -801,15 +849,18 @@ function updateOrdersTable() {
     const endIndex = startIndex + itemsPerPage;
     const pageOrders = filteredOrders.slice(startIndex, endIndex);
     
-    tbody.innerHTML = pageOrders.map((order, index) => `
+    tbody.innerHTML = pageOrders.map((order, index) => {
+        // Calculate total amount
+        const totalAmount = calculateOrderTotal(order);
+        
+        return `
         <tr>
             <td>${startIndex + index + 1}</td>
             <td><strong>${order.ma_don_hang || '-'}</strong></td>
             <td>${order.thong_tin_kh || '-'}</td>
             <td>${order.ngay_tao || '-'}</td>
             <td><span class="badge badge-info">${(order.so_luong || 0).toLocaleString()}</span></td>
-            <td>${(order.tong_tien || 0).toLocaleString()} VNĐ</td>
-            <td>${order.hinh_thuc_tt || '-'}</td>
+            <td><strong>${totalAmount.toLocaleString()} VNĐ</strong></td>
             <td>${getStatusBadge(order.trang_thai)}</td>
             <td>
                 <div class="table-actions">
@@ -822,7 +873,8 @@ function updateOrdersTable() {
                 </div>
             </td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // Update pagination
@@ -891,6 +943,7 @@ function goToPage(page) {
 }
 
 // Generate order code (similar to invoice code)
+// Counter chỉ tăng khi thực sự tạo đơn hàng, không tăng khi mở modal
 let orderSequenceCounter = 0;
 
 function generateOrderCode() {
@@ -902,7 +955,7 @@ function generateOrderCode() {
     const mm_time = String(now.getMinutes()).padStart(2, '0');
     const ss = String(now.getSeconds()).padStart(2, '0');
     
-    // Tăng counter cho đơn hàng
+    // Tăng counter cho đơn hàng - chỉ khi thực sự tạo đơn hàng
     orderSequenceCounter++;
     if (orderSequenceCounter > 9999) {
         orderSequenceCounter = 1;
@@ -942,7 +995,6 @@ function populateAddCustomerList(searchTerm = '') {
     walkInDiv.innerHTML = '<strong>Khách vãng lai</strong>';
     walkInDiv.onclick = function() {
         selectAddCustomer('Khách vãng lai');
-        toggleAddCustomerDropdown();
     };
     dropdownList.appendChild(walkInDiv);
     
@@ -955,7 +1007,6 @@ function populateAddCustomerList(searchTerm = '') {
         customCustomerDiv.innerHTML = `<strong>Thêm khách hàng: "${searchTerm}"</strong><small>Nhấn Enter để sử dụng</small>`;
         customCustomerDiv.onclick = function() {
             selectAddCustomer(searchTerm);
-            toggleAddCustomerDropdown();
         };
         dropdownList.appendChild(customCustomerDiv);
         
@@ -983,7 +1034,6 @@ function populateAddCustomerList(searchTerm = '') {
             item.innerHTML = displayText;
             item.onclick = function() {
                 selectAddCustomer(name);
-                toggleAddCustomerDropdown();
             };
             
             dropdownList.appendChild(item);
@@ -997,7 +1047,6 @@ function populateAddCustomerList(searchTerm = '') {
             customCustomerDiv.innerHTML = `<strong>Thêm khách hàng: "${searchTerm}"</strong><small>Nhấn Enter để sử dụng</small>`;
             customCustomerDiv.onclick = function() {
                 selectAddCustomer(searchTerm);
-                toggleAddCustomerDropdown();
             };
             dropdownList.appendChild(customCustomerDiv);
         }
@@ -1013,11 +1062,9 @@ function handleAddCustomerKeypress(event) {
         if (searchTerm) {
             // If user typed something, use that as customer name
             selectAddCustomer(searchTerm);
-            toggleAddCustomerDropdown();
         } else {
             // If empty, select "Khách vãng lai"
             selectAddCustomer('Khách vãng lai');
-            toggleAddCustomerDropdown();
         }
     }
 }
@@ -1146,7 +1193,6 @@ function populateProductList(searchTerm = '') {
         
         item.onclick = function() {
             selectProduct(name, code, 'product');
-            toggleProductDropdown();
         };
         
         dropdownList.appendChild(item);
@@ -1170,7 +1216,6 @@ function populateProductList(searchTerm = '') {
         
         item.onclick = function() {
             selectProduct(name, code, 'price');
-            toggleProductDropdown();
         };
         
         dropdownList.appendChild(item);
@@ -1222,11 +1267,9 @@ function selectProduct(name, code, type) {
         selectedProduct = pricesData.find(p => p.ma_sp === code);
     }
     
-    // Auto-fill product code in sp_banggia field if it exists
-    const spBangGiaField = document.querySelector('input[name="sp_banggia"]');
-    if (spBangGiaField) {
-        spBangGiaField.value = code;
-    }
+    // Store selected product code for later use
+    // Note: sp_banggia is not a visible form field, it will be sent in the request
+    window.selectedProductCode = code;
     
     // Auto-calculate total if both quantity and price are available
     autoCalculateTotal();
@@ -1388,6 +1431,449 @@ function setupProductDropdownEvents() {
     }
 }
 
+// ========== EDIT MODAL FUNCTIONS ==========
+
+// Customer search functions for edit modal
+function populateEditCustomerList(searchTerm = '') {
+    const dropdownList = document.getElementById('editCustomerDropdownList');
+    const customerInput = document.getElementById('editCustomerName');
+    
+    if (!dropdownList) return;
+    
+    dropdownList.innerHTML = '';
+    
+    let activeCustomers = Array.isArray(customersData) ? customersData.filter(c => c.trang_thai === true || c.trang_thai === 'true') : [];
+    
+    if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        activeCustomers = activeCustomers.filter(c => {
+            const name = (c.ten_tk || '').toLowerCase();
+            const email = (c.email || '').toLowerCase();
+            const phone = (c.so_dt || '').toLowerCase();
+            return name.includes(searchLower) || email.includes(searchLower) || phone.includes(searchLower);
+        });
+    }
+    
+    const walkInDiv = document.createElement('div');
+    walkInDiv.className = 'customer-dropdown-item';
+    walkInDiv.dataset.value = 'Khách vãng lai';
+    walkInDiv.innerHTML = '<strong>Khách vãng lai</strong>';
+    walkInDiv.onclick = function() {
+        selectEditCustomer('Khách vãng lai');
+    };
+    dropdownList.appendChild(walkInDiv);
+    
+    if (activeCustomers.length === 0 && searchTerm) {
+        const customCustomerDiv = document.createElement('div');
+        customCustomerDiv.className = 'customer-dropdown-item';
+        customCustomerDiv.dataset.value = searchTerm;
+        customCustomerDiv.innerHTML = `<strong>Thêm khách hàng: "${searchTerm}"</strong><small>Nhấn Enter để sử dụng</small>`;
+        customCustomerDiv.onclick = function() {
+            selectEditCustomer(searchTerm);
+        };
+        dropdownList.appendChild(customCustomerDiv);
+        
+        const noResult = document.createElement('div');
+        noResult.className = 'customer-dropdown-item';
+        noResult.innerHTML = '<small style="color: var(--gray-500);">Không tìm thấy khách hàng có sẵn</small>';
+        dropdownList.appendChild(noResult);
+    } else {
+        activeCustomers.forEach(customer => {
+            const name = customer.ten_tk || '';
+            const email = customer.email || '';
+            const phone = customer.so_dt || '';
+            
+            const item = document.createElement('div');
+            item.className = 'customer-dropdown-item';
+            item.dataset.value = name;
+            
+            let displayText = `<strong>${name}</strong>`;
+            if (email) {
+                displayText += `<small>${email}</small>`;
+            } else if (phone) {
+                displayText += `<small>${phone}</small>`;
+            }
+            
+            item.innerHTML = displayText;
+            item.onclick = function() {
+                selectEditCustomer(name);
+            };
+            
+            dropdownList.appendChild(item);
+        });
+        
+        if (searchTerm && activeCustomers.length > 0) {
+            const customCustomerDiv = document.createElement('div');
+            customCustomerDiv.className = 'customer-dropdown-item';
+            customCustomerDiv.dataset.value = searchTerm;
+            customCustomerDiv.innerHTML = `<strong>Thêm khách hàng: "${searchTerm}"</strong><small>Nhấn Enter để sử dụng</small>`;
+            customCustomerDiv.onclick = function() {
+                selectEditCustomer(searchTerm);
+            };
+            dropdownList.appendChild(customCustomerDiv);
+        }
+    }
+}
+
+function handleEditCustomerKeypress(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        const customerInput = document.getElementById('editCustomerName');
+        const searchTerm = customerInput.value.trim();
+        
+        if (searchTerm) {
+            selectEditCustomer(searchTerm);
+        } else {
+            selectEditCustomer('Khách vãng lai');
+        }
+    }
+}
+
+function toggleEditCustomerDropdown() {
+    const dropdown = document.getElementById('editCustomerDropdownList');
+    if (dropdown) {
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+function selectEditCustomer(customerName) {
+    const customerInput = document.getElementById('editCustomerName');
+    
+    if (customerInput) {
+        customerInput.value = customerName;
+    }
+    
+    const dropdown = document.getElementById('editCustomerDropdownList');
+    if (dropdown) {
+        dropdown.style.display = 'none';
+    }
+}
+
+function setupEditCustomerDropdownEvents() {
+    const customerInput = document.getElementById('editCustomerName');
+    const dropdown = document.getElementById('editCustomerDropdownList');
+    
+    if (customerInput && dropdown) {
+        customerInput.addEventListener('click', function() {
+            const searchTerm = customerInput.value;
+            populateEditCustomerList(searchTerm);
+            dropdown.style.display = 'block';
+        });
+        
+        customerInput.addEventListener('focus', function() {
+            const searchTerm = customerInput.value;
+            populateEditCustomerList(searchTerm);
+            dropdown.style.display = 'block';
+        });
+        
+        customerInput.addEventListener('input', function() {
+            const searchTerm = customerInput.value;
+            populateEditCustomerList(searchTerm);
+            dropdown.style.display = 'block';
+        });
+        
+        customerInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                dropdown.style.display = 'none';
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                const firstItem = dropdown.querySelector('.customer-dropdown-item');
+                if (firstItem) {
+                    firstItem.focus();
+                }
+            }
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (!customerInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    }
+}
+
+// Product search functions for edit modal
+function populateEditProductList(searchTerm = '') {
+    const dropdownList = document.getElementById('editProductDropdownList');
+    
+    if (!dropdownList) return;
+    
+    dropdownList.innerHTML = '';
+    
+    let filteredProducts = Array.isArray(productsData) ? productsData : [];
+    let filteredPrices = Array.isArray(pricesData) ? pricesData : [];
+    
+    if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        filteredProducts = filteredProducts.filter(p => {
+            const name = (p.ten_sp || '').toLowerCase();
+            const code = (p.ma_sp || '').toLowerCase();
+            return name.includes(searchLower) || code.includes(searchLower);
+        });
+        
+        filteredPrices = filteredPrices.filter(p => {
+            const name = (p.ten_sp || '').toLowerCase();
+            const code = (p.ma_sp || '').toLowerCase();
+            return name.includes(searchLower) || code.includes(searchLower);
+        });
+    }
+    
+    filteredProducts.forEach(product => {
+        const name = product.ten_sp || '';
+        const code = product.ma_sp || '';
+        const price = product.gia_ban || 0;
+        
+        const item = document.createElement('div');
+        item.className = 'product-dropdown-item';
+        item.dataset.type = 'product';
+        item.dataset.value = code;
+        
+        item.innerHTML = `
+            <strong>${name}</strong>
+            <small>Mã: ${code} - Giá bán: ${price.toLocaleString()} VNĐ</small>
+        `;
+        
+        item.onclick = function() {
+            selectEditProduct(name, code, 'product');
+        };
+        
+        dropdownList.appendChild(item);
+    });
+    
+    filteredPrices.forEach(price => {
+        const name = price.ten_sp || '';
+        const code = price.ma_sp || '';
+        const priceValue = price.gia_chung || 0;
+        
+        const item = document.createElement('div');
+        item.className = 'product-dropdown-item';
+        item.dataset.type = 'price';
+        item.dataset.value = code;
+        
+        item.innerHTML = `
+            <strong>${name}</strong>
+            <small>Mã: ${code} - Giá chung: ${priceValue.toLocaleString()} VNĐ</small>
+        `;
+        
+        item.onclick = function() {
+            selectEditProduct(name, code, 'price');
+        };
+        
+        dropdownList.appendChild(item);
+    });
+    
+    if (filteredProducts.length === 0 && filteredPrices.length === 0 && searchTerm) {
+        const noResult = document.createElement('div');
+        noResult.className = 'product-dropdown-item';
+        noResult.innerHTML = '<small style="color: var(--gray-500);">Không tìm thấy sản phẩm hoặc bảng giá</small>';
+        dropdownList.appendChild(noResult);
+    }
+}
+
+function handleEditProductKeypress(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        const productInput = document.getElementById('editProductSearch');
+        const searchTerm = productInput.value.trim();
+        
+        if (searchTerm) {
+            const dropdown = document.getElementById('editProductDropdownList');
+            const firstItem = dropdown.querySelector('.product-dropdown-item[data-type]');
+            if (firstItem) {
+                firstItem.click();
+            }
+        }
+    }
+}
+
+function toggleEditProductDropdown() {
+    const dropdown = document.getElementById('editProductDropdownList');
+    if (dropdown) {
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+function selectEditProduct(name, code, type) {
+    const productInput = document.getElementById('editProductSearch');
+    
+    if (productInput) {
+        productInput.value = `${name} (${code})`;
+    }
+    
+    if (type === 'product') {
+        editSelectedProduct = productsData.find(p => p.ma_sp === code);
+    } else if (type === 'price') {
+        editSelectedProduct = pricesData.find(p => p.ma_sp === code);
+    }
+    
+    window.editSelectedProductCode = code;
+    
+    autoCalculateEditTotal();
+    
+    const quantityInput = document.querySelector('#editOrderForm input[name="so_luong"]');
+    if (quantityInput) {
+        validateEditQuantity(quantityInput);
+    }
+    
+    const dropdown = document.getElementById('editProductDropdownList');
+    if (dropdown) {
+        dropdown.style.display = 'none';
+    }
+}
+
+function setupEditProductDropdownEvents() {
+    const productInput = document.getElementById('editProductSearch');
+    const dropdown = document.getElementById('editProductDropdownList');
+    
+    if (productInput && dropdown) {
+        productInput.addEventListener('click', function() {
+            const searchTerm = productInput.value;
+            populateEditProductList(searchTerm);
+            dropdown.style.display = 'block';
+        });
+        
+        productInput.addEventListener('focus', function() {
+            const searchTerm = productInput.value;
+            populateEditProductList(searchTerm);
+            dropdown.style.display = 'block';
+        });
+        
+        productInput.addEventListener('input', function() {
+            const searchTerm = productInput.value;
+            populateEditProductList(searchTerm);
+            dropdown.style.display = 'block';
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (!productInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    }
+}
+
+// Validate quantity for edit modal
+function validateEditQuantity(input) {
+    const quantity = parseInt(input.value) || 0;
+    const messageDiv = document.getElementById('editQuantityMessage');
+    
+    if (!editSelectedProduct) {
+        messageDiv.style.display = 'none';
+        return;
+    }
+    
+    const availableStock = editSelectedProduct.so_luong || 0;
+    
+    if (quantity <= 0) {
+        messageDiv.style.display = 'none';
+        return;
+    }
+    
+    if (quantity > availableStock) {
+        messageDiv.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            Số lượng vượt quá tồn kho! Chỉ còn ${availableStock} sản phẩm. 
+            <button type="button" onclick="setMaxEditQuantity()" style="margin-left: 8px; padding: 2px 8px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                Đặt tối đa
+            </button>
+        `;
+        messageDiv.className = 'quantity-message error';
+        messageDiv.style.display = 'block';
+        
+        input.value = availableStock;
+        autoCalculateEditTotal();
+    } else if (quantity === availableStock) {
+        messageDiv.innerHTML = `
+            <i class="fas fa-info-circle"></i>
+            Đang sử dụng toàn bộ tồn kho (${availableStock} sản phẩm)
+        `;
+        messageDiv.className = 'quantity-message warning';
+        messageDiv.style.display = 'block';
+    } else {
+        const remaining = availableStock - quantity;
+        messageDiv.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            Còn lại ${remaining} sản phẩm trong kho
+        `;
+        messageDiv.className = 'quantity-message info';
+        messageDiv.style.display = 'block';
+    }
+}
+
+function setMaxEditQuantity() {
+    if (editSelectedProduct) {
+        const quantityInput = document.querySelector('#editOrderForm input[name="so_luong"]');
+        const availableStock = editSelectedProduct.so_luong || 0;
+        quantityInput.value = availableStock;
+        validateEditQuantity(quantityInput);
+        autoCalculateEditTotal();
+    }
+}
+
+// Auto-calculate total for edit modal
+function autoCalculateEditTotal() {
+    const productInput = document.getElementById('editProductSearch');
+    const quantityInput = document.querySelector('#editOrderForm input[name="so_luong"]');
+    const totalDisplay = document.getElementById('edit_tong_tien_display');
+    const totalHidden = document.getElementById('edit_tong_tien');
+    
+    if (!productInput || !quantityInput || !totalDisplay || !totalHidden) return;
+    
+    const productText = productInput.value;
+    const quantity = parseInt(quantityInput.value) || 0;
+    
+    if (productText && quantity > 0) {
+        let productCode = null;
+        
+        // Try to extract code from format "Name (CODE)"
+        const codeMatch = productText.match(/\(([^)]+)\)$/);
+        if (codeMatch) {
+            productCode = codeMatch[1];
+        } else {
+            // If no parentheses, try to use the whole text as code
+            productCode = productText.trim();
+        }
+        
+        if (productCode) {
+            // Try to find product or price by code
+            let selectedProduct = productsData.find(p => p.ma_sp === productCode);
+            let selectedPrice = pricesData.find(p => p.ma_sp === productCode);
+            
+            // If not found, try using editSelectedProduct
+            if (!selectedProduct && !selectedPrice && editSelectedProduct) {
+                selectedProduct = editSelectedProduct;
+            }
+            
+            let price = 0;
+            if (selectedProduct) {
+                // Try gia_ban first, then gia_chung
+                price = selectedProduct.gia_ban || 0;
+                if (price === 0) {
+                    price = selectedProduct.gia_chung || 0;
+                }
+            } else if (selectedPrice) {
+                price = selectedPrice.gia_chung || 0;
+            }
+            
+            if (price > 0) {
+                const total = price * quantity;
+                totalHidden.value = total;
+                totalDisplay.value = total.toLocaleString();
+            } else {
+                // If price is 0, keep the existing total or set to 0
+                const currentTotal = parseInt(totalHidden.value) || 0;
+                if (currentTotal === 0) {
+                    totalDisplay.value = '0';
+                }
+            }
+        }
+    }
+    
+    if (quantityInput) {
+        validateEditQuantity(quantityInput);
+    }
+}
+
 // Modal functions
 function openAddOrderModal() {
     const modal = document.getElementById('addOrderModal');
@@ -1397,9 +1883,10 @@ function openAddOrderModal() {
     if (form) {
         form.reset();
         
-        // Auto-generate order code
-        const orderCode = generateOrderCode();
-        document.getElementById('addOrderCode').value = orderCode;
+        // Không tạo mã đơn hàng khi mở modal - chỉ hiển thị placeholder
+        // Mã sẽ được tạo khi người dùng nhấn "Tạo đơn hàng"
+        document.getElementById('addOrderCode').value = '';
+        document.getElementById('addOrderCode').placeholder = 'Tự động tạo khi lưu';
         
         // Set today's date
         const today = new Date().toISOString().slice(0, 10);
@@ -1413,6 +1900,7 @@ function openAddOrderModal() {
         
         // Reset selected product and quantity message
         selectedProduct = null;
+        window.selectedProductCode = null;
         const quantityMessage = document.getElementById('quantityMessage');
         if (quantityMessage) {
             quantityMessage.style.display = 'none';
@@ -1459,18 +1947,80 @@ function editOrder(id) {
         form.querySelector('input[name="id"]').value = order.id;
         form.querySelector('input[name="ma_don_hang"]').value = order.ma_don_hang || '';
         form.querySelector('input[name="ngay_tao"]').value = order.ngay_tao || '';
-        form.querySelector('input[name="thong_tin_kh"]').value = order.thong_tin_kh || '';
+        
+        // Set customer name
+        const editCustomerInput = document.getElementById('editCustomerName');
+        if (editCustomerInput) {
+            editCustomerInput.value = order.thong_tin_kh || '';
+        }
+        
+        // Set product search if sp_banggia exists
+        const editProductInput = document.getElementById('editProductSearch');
+        if (editProductInput && order.sp_banggia) {
+            // Find product or price by code
+            const product = productsData.find(p => p.ma_sp === order.sp_banggia);
+            const price = pricesData.find(p => p.ma_sp === order.sp_banggia);
+            
+            if (product) {
+                editProductInput.value = `${product.ten_sp || ''} (${order.sp_banggia})`;
+                editSelectedProduct = product;
+                window.editSelectedProductCode = order.sp_banggia;
+            } else if (price) {
+                editProductInput.value = `${price.ten_sp || ''} (${order.sp_banggia})`;
+                editSelectedProduct = price;
+                window.editSelectedProductCode = order.sp_banggia;
+            } else {
+                editProductInput.value = order.sp_banggia;
+                window.editSelectedProductCode = order.sp_banggia;
+            }
+        } else {
+            window.editSelectedProductCode = null;
+        }
+        
         form.querySelector('input[name="so_luong"]').value = order.so_luong || 0;
         form.querySelector('input[name="ma_co_quan_thue"]').value = order.ma_co_quan_thue || '';
-        form.querySelector('select[name="hinh_thuc_tt"]').value = order.hinh_thuc_tt || '';
         form.querySelector('select[name="trang_thai"]').value = order.trang_thai || '';
         
+        // Set initial total amount (will be recalculated if product is found)
         const tongTien = order.tong_tien || 0;
         document.getElementById('edit_tong_tien').value = tongTien;
         document.getElementById('edit_tong_tien_display').value = tongTien.toLocaleString();
         
-        // Store initial state for edit modal
-        // storeModalState('editOrderModal', form); // Removed as per new_code
+        // Reset quantity message
+        const editQuantityMessage = document.getElementById('editQuantityMessage');
+        if (editQuantityMessage) {
+            editQuantityMessage.style.display = 'none';
+        }
+        
+        // Setup customer dropdown events
+        setTimeout(() => {
+            setupEditCustomerDropdownEvents();
+            populateEditCustomerList(order.thong_tin_kh || '');
+        }, 100);
+        
+        // Setup product dropdown events
+        setTimeout(() => {
+            setupEditProductDropdownEvents();
+            populateEditProductList(order.sp_banggia || '');
+        }, 100);
+        
+        // Setup quantity change listener for auto-calculation
+        const quantityInput = form.querySelector('input[name="so_luong"]');
+        if (quantityInput) {
+            quantityInput.addEventListener('input', autoCalculateEditTotal);
+        }
+        
+        // Auto-calculate total when modal opens if product and quantity are available
+        setTimeout(() => {
+            if (editProductInput && editProductInput.value && quantityInput && quantityInput.value) {
+                autoCalculateEditTotal();
+            }
+        }, 200);
+        
+        // Validate quantity if product is selected
+        if (quantityInput && editSelectedProduct) {
+            validateEditQuantity(quantityInput);
+        }
         
         document.getElementById('editOrderModal').style.display = 'flex';
     }
@@ -1484,6 +2034,20 @@ async function createOrder() {
     const form = document.getElementById('addOrderForm');
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
+    
+    // Tạo mã đơn hàng khi người dùng nhấn "Tạo đơn hàng"
+    // Chỉ tạo nếu chưa có mã hoặc mã là rỗng
+    if (!data.ma_don_hang || data.ma_don_hang.trim() === '') {
+        const orderCode = generateOrderCode();
+        data.ma_don_hang = orderCode;
+        // Cập nhật lại vào form để hiển thị
+        document.getElementById('addOrderCode').value = orderCode;
+    }
+    
+    // Add sp_banggia from selected product
+    if (window.selectedProductCode) {
+        data.sp_banggia = window.selectedProductCode;
+    }
     
     // Validation
     if (!data.ma_don_hang || data.ma_don_hang.trim() === '') {
@@ -1506,11 +2070,6 @@ async function createOrder() {
         return;
     }
     
-    if (!data.hinh_thuc_tt || data.hinh_thuc_tt.trim() === '') {
-        showErrorMessage('Vui lòng chọn hình thức thanh toán');
-        return;
-    }
-    
     if (!data.trang_thai || data.trang_thai.trim() === '') {
         showErrorMessage('Vui lòng chọn trạng thái đơn hàng');
         return;
@@ -1529,6 +2088,12 @@ async function createOrder() {
             },
             body: JSON.stringify(data)
         });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ detail: 'Lỗi không xác định' }));
+            showErrorMessage(errorData.detail || `Lỗi ${response.status}: ${response.statusText}`);
+            return;
+        }
         
         const result = await response.json();
         if (result.success) {
@@ -1550,6 +2115,32 @@ async function updateOrder() {
     const data = Object.fromEntries(formData);
     const id = data.id;
     delete data.id;
+    
+    // Add sp_banggia from selected product
+    if (window.editSelectedProductCode) {
+        data.sp_banggia = window.editSelectedProductCode;
+    }
+    
+    // Validation
+    if (!data.thong_tin_kh || data.thong_tin_kh.trim() === '') {
+        showErrorMessage('Thông tin khách hàng không được để trống');
+        return;
+    }
+    
+    if (!data.so_luong || parseInt(data.so_luong) <= 0) {
+        showErrorMessage('Số lượng phải lớn hơn 0');
+        return;
+    }
+    
+    if (!data.tong_tien || parseInt(data.tong_tien) <= 0) {
+        showErrorMessage('Tổng tiền phải lớn hơn 0');
+        return;
+    }
+    
+    if (!data.trang_thai || data.trang_thai.trim() === '') {
+        showErrorMessage('Vui lòng chọn trạng thái đơn hàng');
+        return;
+    }
     
     // Convert numeric fields
     data.so_luong = parseInt(data.so_luong || '0');

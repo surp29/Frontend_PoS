@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block page_description %}
-Quản lý và phân loại các nhóm sản phẩm, theo dõi số lượng và mô tả từng nhóm
+Quản lý và phân loại các nhóm sản phẩm, theo dõi số lượng từng nhóm
 {% endblock %}
 
 {% block content %}
@@ -43,15 +43,6 @@ Quản lý và phân loại các nhóm sản phẩm, theo dõi số lượng và
         </div>
     </div>
     
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-tags"></i>
-        </div>
-        <div class="stat-content">
-            <div class="stat-number" id="groupsWithDescription">0</div>
-            <div class="stat-label">Có mô tả</div>
-        </div>
-    </div>
 </div>
 
 <!-- Filter Bar -->
@@ -87,7 +78,6 @@ Quản lý và phân loại các nhóm sản phẩm, theo dõi số lượng và
                         <th>STT</th>
                         <th>Nhóm sản phẩm</th>
                         <th>Số lượng</th>
-                        <th>Mô tả</th>
                         <th class="action-column">Thao tác</th>
                     </tr>
                 </thead>
@@ -102,38 +92,6 @@ Quản lý và phân loại các nhóm sản phẩm, theo dõi số lượng và
 <!-- Pagination -->
 <div class="pagination" id="pagination">
     <!-- Pagination will be generated here -->
-</div>
-
-<!-- Edit Description Modal -->
-<div class="modal-overlay" id="editDescriptionModal" style="display: none;">
-    <div class="modal modal-horizontal">
-        <div class="modal-header">
-            <h3><i class="fas fa-edit"></i> Chỉnh sửa mô tả</h3>
-            <button class="modal-close" onclick="closeEditDescriptionModal()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <form id="editDescriptionForm">
-                <input type="hidden" name="groupName">
-                <input type="hidden" name="groupId">
-                
-                <div class="form-group">
-                    <label class="form-label">Tên nhóm</label>
-                    <input type="text" class="form-input" name="groupNameDisplay" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Mô tả</label>
-                    <textarea class="form-textarea" name="description" rows="4" placeholder="Nhập mô tả cho nhóm sản phẩm..."></textarea>
-            </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeEditDescriptionModal()">Hủy</button>
-            <button type="button" class="btn btn-primary" onclick="saveDescription()">Lưu</button>
-        </div>
-    </div>
 </div>
 
 <!-- Delete Confirmation Modal -->
@@ -215,27 +173,6 @@ Quản lý và phân loại các nhóm sản phẩm, theo dõi số lượng và
     font-weight: 500;
 }
 
-.description-cell {
-    cursor: pointer;
-    padding: var(--spacing-2);
-    border-radius: var(--radius-md);
-    transition: all var(--transition-normal);
-    border: 1px solid transparent;
-    min-height: 40px;
-    display: flex;
-    align-items: center;
-}
-
-.description-cell:hover {
-    background-color: var(--gray-50);
-    border-color: var(--primary-color);
-}
-
-.description-cell.empty {
-    color: var(--gray-500);
-    font-style: italic;
-}
-
 /* Table column sizing */
 .action-column {
     width: 80px !important;
@@ -248,114 +185,11 @@ Quản lý và phân loại các nhóm sản phẩm, theo dõi số lượng và
     text-align: center;
 }
 
-.table td:nth-child(4) {
-    width: 40%;
-    min-width: 200px;
-    word-wrap: break-word; /* Allow text wrapping */
-    word-break: break-word; /* Break long words if needed */
-    white-space: normal; /* Allow normal text wrapping */
-}
-
-/* Inline description editing styles */
-.description-input-cell {
-    cursor: pointer;
-    padding: var(--spacing-2);
-    border-radius: var(--radius-md);
-    transition: all var(--transition-normal);
-    border: 1px solid transparent;
-    min-height: 40px;
-    display: flex;
-    align-items: center;
-    position: relative;
-}
-
-.description-input-cell:hover {
-    background-color: var(--gray-50);
-    border-color: var(--primary-color);
-}
-
-.description-text {
-    flex: 1;
-    word-wrap: break-word;
-    word-break: break-word;
-    white-space: normal;
-    line-height: 1.4;
-    color: var(--gray-700);
-}
-
-.description-text.empty {
-    color: var(--gray-500);
-    font-style: italic;
-}
-
-.description-input {
-    width: 100%;
-    border: 2px solid var(--primary-color);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-2);
-    font-size: var(--font-size-sm);
-    background: white;
-    outline: none;
-    word-wrap: break-word;
-    word-break: break-word;
-    white-space: normal;
-    line-height: 1.4;
-    resize: vertical; /* Allow vertical resizing */
-    min-height: 40px;
-    font-family: inherit; /* Use same font as the page */
-    overflow-y: auto; /* Show scrollbar if needed */
-}
-
-.description-input:focus {
-    border-color: var(--primary-dark);
-    box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
-}
-
-/* Loading state for saving */
-.description-input-cell.saving {
-    opacity: 0.7;
-    pointer-events: none;
-}
-
-.description-input-cell.saving::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    width: 16px;
-    height: 16px;
-    border: 2px solid var(--primary-color);
-    border-top: 2px solid transparent;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    transform: translateY(-50%);
-}
-
-@keyframes spin {
-    0% { transform: translateY(-50%) rotate(0deg); }
-    100% { transform: translateY(-50%) rotate(360deg); }
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .action-column {
         width: 60px !important;
         min-width: 60px;
-    }
-    
-    .table td:nth-child(4) {
-        width: 35%;
-        min-width: 150px;
-    }
-    
-    .description-input-cell {
-        padding: var(--spacing-1);
-        min-height: 35px;
-    }
-    
-    .description-input {
-        min-height: 35px;
-        font-size: var(--font-size-xs);
     }
     
     .table th.action-column {
@@ -372,7 +206,7 @@ Quản lý và phân loại các nhóm sản phẩm, theo dõi số lượng và
 let groupsData = [];
 let filteredGroups = [];
 let currentPage = 1;
-const itemsPerPage = 10;
+const itemsPerPage = 20; // Popup modal: 20 items per page
 let deleteGroupName = null;
 
 // Initialize
@@ -406,7 +240,6 @@ async function loadGroupsData() {
                     groupMap.set(groupName, {
                         ten_nhom: groupName,
                         so_luong: 0,
-                        mo_ta: '',
                         id: null
                     });
                 }
@@ -435,12 +268,10 @@ function updateStatistics() {
     const totalGroups = groupsData.length;
     const totalQuantity = groupsData.reduce((sum, group) => sum + (group.so_luong || 0), 0);
     const avgQuantity = totalGroups > 0 ? Math.round(totalQuantity / totalGroups) : 0;
-    const groupsWithDescription = groupsData.filter(group => group.mo_ta && group.mo_ta.trim()).length;
     
     document.getElementById('totalGroups').textContent = totalGroups;
     document.getElementById('totalQuantity').textContent = totalQuantity.toLocaleString();
     document.getElementById('avgQuantity').textContent = avgQuantity.toLocaleString();
-    document.getElementById('groupsWithDescription').textContent = groupsWithDescription;
 }
 
 // Filter groups
@@ -449,8 +280,7 @@ function filterGroups() {
     
     filteredGroups = groupsData.filter(group => {
         const matchesSearch = !searchTerm || 
-                             (group.ten_nhom && group.ten_nhom.toLowerCase().includes(searchTerm)) ||
-                             (group.mo_ta && group.mo_ta.toLowerCase().includes(searchTerm));
+                             (group.ten_nhom && group.ten_nhom.toLowerCase().includes(searchTerm));
         
         return matchesSearch;
     });
@@ -482,14 +312,6 @@ function updateGroupsTable() {
             <td>${startIndex + index + 1}</td>
             <td><strong>${group.ten_nhom || '-'}</strong></td>
             <td><span class="badge badge-info">${(group.so_luong || 0).toLocaleString()}</span></td>
-            <td>
-                <div class="description-input-cell" onclick="editDescriptionInline('${group.ten_nhom}', '${group.id || ''}', this)">
-                    <span class="description-text ${!group.mo_ta ? 'empty' : ''}">${group.mo_ta || 'Click để thêm mô tả...'}</span>
-                    <textarea class="description-input" style="display: none;" 
-                           onblur="saveDescriptionInline('${group.ten_nhom}', '${group.id || ''}', this)" 
-                           onkeypress="handleDescriptionKeypress(event, '${group.ten_nhom}', '${group.id || ''}', this)">${group.mo_ta || ''}</textarea>
-                </div>
-            </td>
             <td class="action-column">
                 <div class="table-actions">
                     <button class="btn btn-sm btn-danger" onclick="deleteGroup('${group.ten_nhom}', ${group.so_luong || 0})">
@@ -566,190 +388,6 @@ function goToPage(page) {
     }
 }
 
-// Inline description editing functions
-function editDescriptionInline(groupName, groupId, cellElement) {
-    const textSpan = cellElement.querySelector('.description-text');
-    const inputField = cellElement.querySelector('.description-input');
-    
-    // Hide text, show input
-    textSpan.style.display = 'none';
-    inputField.style.display = 'block';
-    inputField.focus();
-    inputField.select();
-}
-
-function saveDescriptionInline(groupName, groupId, inputElement) {
-    const cellElement = inputElement.parentElement;
-    const textSpan = cellElement.querySelector('.description-text');
-    const newDescription = inputElement.value.trim();
-    
-    // Hide input, show text
-    inputElement.style.display = 'none';
-    textSpan.style.display = 'block';
-    
-    // Update text content and styling
-    if (newDescription) {
-        textSpan.textContent = newDescription;
-        textSpan.classList.remove('empty');
-    } else {
-        textSpan.textContent = 'Click để thêm mô tả...';
-        textSpan.classList.add('empty');
-    }
-    
-    // Update local data
-    const group = groupsData.find(g => g.ten_nhom === groupName);
-    if (group) {
-        group.mo_ta = newDescription;
-    }
-    
-    // Add loading state
-    cellElement.classList.add('saving');
-    
-    // Save to backend
-    saveDescriptionToBackend(groupName, groupId, newDescription).finally(() => {
-        cellElement.classList.remove('saving');
-    });
-}
-
-function handleDescriptionKeypress(event, groupName, groupId, inputElement) {
-    if (event.key === 'Enter') {
-        event.preventDefault();
-        saveDescriptionInline(groupName, groupId, inputElement);
-    } else if (event.key === 'Escape') {
-        event.preventDefault();
-        const cellElement = inputElement.parentElement;
-        const textSpan = cellElement.querySelector('.description-text');
-        
-        // Cancel editing - restore original value
-        const group = groupsData.find(g => g.ten_nhom === groupName);
-        inputElement.value = group ? (group.mo_ta || '') : '';
-        
-        inputElement.style.display = 'none';
-        textSpan.style.display = 'block';
-    }
-}
-
-async function saveDescriptionToBackend(groupName, groupId, description) {
-    try {
-        // Show loading state
-        const group = groupsData.find(g => g.ten_nhom === groupName);
-        if (group) {
-            group.isSaving = true;
-        }
-        
-        if (groupId) {
-            // Update existing group
-            const response = await fetch(`{{ BACKEND_URL }}/api/product-groups/${groupId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
-                },
-                body: JSON.stringify({ mo_ta: description })
-            });
-            
-            if (response.ok) {
-                showSuccessMessage('Cập nhật mô tả thành công!');
-            } else {
-                showErrorMessage('Có lỗi xảy ra khi cập nhật mô tả');
-            }
-        } else {
-            // Create new group description (this is just for description, not creating actual group)
-            // Since groups are now derived from products, we just update local data
-            if (group) {
-                group.mo_ta = description;
-                showSuccessMessage('Cập nhật mô tả thành công!');
-            }
-        }
-    } catch (error) {
-        showErrorMessage('Có lỗi xảy ra khi lưu mô tả');
-        console.error('Error saving description:', error);
-    } finally {
-        // Remove loading state
-        if (group) {
-            group.isSaving = false;
-        }
-    }
-}
-
-// Modal functions
-function editDescription(groupName, groupId) {
-    const form = document.getElementById('editDescriptionForm');
-    form.querySelector('input[name="groupName"]').value = groupName;
-    form.querySelector('input[name="groupId"]').value = groupId;
-    form.querySelector('input[name="groupNameDisplay"]').value = groupName;
-    
-    // Load current description
-    const group = groupsData.find(g => g.ten_nhom === groupName);
-    form.querySelector('textarea[name="description"]').value = group ? (group.mo_ta || '') : '';
-    
-    // Store initial state for edit modal
-        storeModalState('editDescriptionModal', form);
-        
-        // Store initial state for edit modal
-        storeModalState('editDescriptionModal', form);
-        
-        document.getElementById('editDescriptionModal').style.display = 'flex';
-}
-
-function closeEditDescriptionModal() {
-    closeModalWithConfirmation('editDescriptionModal');
-}
-
-async function saveDescription() {
-    const form = document.getElementById('editDescriptionForm');
-    const formData = new FormData(form);
-    const groupName = formData.get('groupName');
-    const groupId = formData.get('groupId');
-    const description = formData.get('description');
-    
-    try {
-        if (groupId) {
-            // Update existing group
-            const response = await fetch(`{{ BACKEND_URL }}/api/product-groups/${groupId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
-                },
-                body: JSON.stringify({ mo_ta: description })
-            });
-            
-            if (response.ok) {
-                // Update local data
-                const group = groupsData.find(g => g.id == groupId);
-                if (group) {
-                    group.mo_ta = description;
-                }
-            }
-        } else {
-            // Create new group
-            const response = await fetch('{{ BACKEND_URL }}/api/product-groups/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
-                },
-                body: JSON.stringify({ 
-                    ten_nhom: groupName, 
-                    mo_ta: description 
-                })
-            });
-            
-            if (response.ok) {
-                const result = await response.json();
-                groupsData.push(result);
-            }
-        }
-        
-        document.getElementById('editDescriptionModal').style.display = 'none';
-        clearModalState('editDescriptionModal');
-        loadGroupsData();
-        showSuccessMessage('Cập nhật thành công!');
-    } catch (error) {
-        showErrorMessage('Có lỗi xảy ra khi cập nhật mô tả');
-    }
-}
 
 function deleteGroup(groupName, productCount) {
     if (productCount > 0) {

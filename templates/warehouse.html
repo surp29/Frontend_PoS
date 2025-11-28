@@ -61,14 +61,25 @@ Tạo và quản lý các kho hàng, theo dõi thông tin chi tiết từng kho
     </div>
     <div class="card-body">
         <form id="createWarehouseForm">
+            <div class="form-group" style="margin-bottom: var(--spacing-5);">
+                <label class="form-label" style="cursor: pointer; display: flex; align-items: center; gap: var(--spacing-2);" onclick="toggleWarehouseDropdown()">
+                    <i class="fas fa-warehouse"></i>
+                    Chọn kho hàng có sẵn
+                    <i class="fas fa-chevron-down" id="warehouseDropdownIcon" style="margin-left: auto; transition: transform 0.3s;"></i>
+                </label>
+                <select class="form-select" id="selectExistingWarehouse" style="display: none; margin-top: var(--spacing-2);" onchange="fillWarehouseFromSelection(this.value)">
+                    <option value="">-- Chọn kho hàng --</option>
+                </select>
+            </div>
+            
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Mã kho *</label>
-                    <input type="text" class="form-input" name="ma_kho" required placeholder="Nhập mã kho">
+                    <input type="text" class="form-input" name="ma_kho" id="ma_kho_input" required placeholder="Nhập mã kho">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Tên kho *</label>
-                    <input type="text" class="form-input" name="ten_kho" required placeholder="Nhập tên kho">
+                    <input type="text" class="form-input" name="ten_kho" id="ten_kho_input" required placeholder="Nhập tên kho">
                 </div>
             </div>
             
@@ -98,21 +109,11 @@ Tạo và quản lý các kho hàng, theo dõi thông tin chi tiết từng kho
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Số điện thoại</label>
-                    <div class="phone-input-container">
-                        <select id="phoneCountry" class="form-select" aria-label="Quốc gia">
-                            <option value="+84" selected>🇻🇳 (+84)</option>
-                            <option value="+1">🇺🇸 (+1)</option>
-                            <option value="+61">🇦🇺 (+61)</option>
-                            <option value="+81">🇯🇵 (+81)</option>
-                            <option value="+82">🇰🇷 (+82)</option>
-                            <option value="+65">🇸🇬 (+65)</option>
-                        </select>
-                        <input type="tel" id="phoneNumber" class="form-input" name="dien_thoai_local" placeholder="Nhập số (chỉ số)" autocomplete="off">
-                    </div>
+                    <input type="tel" class="form-input" data-phone name="dien_thoai" id="dien_thoai_input" placeholder="Nhập số điện thoại">
                 </div>
                 <div class="form-group form-address">
                     <label class="form-label">Địa chỉ *</label>
-                    <textarea class="form-textarea" name="dia_chi" rows="3" required placeholder="Nhập địa chỉ kho"></textarea>
+                    <textarea class="form-textarea" name="dia_chi" id="dia_chi_input" rows="3" required placeholder="Nhập địa chỉ kho"></textarea>
                 </div>
             </div>
             
@@ -223,26 +224,6 @@ Tạo và quản lý các kho hàng, theo dõi thông tin chi tiết từng kho
     <!-- Pagination will be generated here -->
 </div>
 
-<!-- View Warehouse Modal -->
-<div class="modal-overlay" id="viewWarehouseModal" style="display: none;">
-    <div class="modal modal-large">
-        <div class="modal-header">
-            <h3><i class="fas fa-eye"></i> Chi tiết kho hàng</h3>
-            <button class="modal-close" onclick="closeViewWarehouseModal()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <div id="warehouseDetails">
-                <!-- Warehouse details will be loaded here -->
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeViewWarehouseModal()">Đóng</button>
-        </div>
-    </div>
-</div>
-
 <!-- Edit Warehouse Modal -->
 <div class="modal-overlay" id="editWarehouseModal" style="display: none;">
 <div class="modal modal-horizontal">
@@ -277,11 +258,11 @@ Tạo và quản lý các kho hàng, theo dõi thông tin chi tiết từng kho
       <div class="form-row">
         <div class="form-group">
                         <label class="form-label">Số lượng *</label>
-                        <input type="number" class="form-input" name="so_luong" min="0" required>
+                        <input type="number" class="form-input" name="so_luong" id="edit_so_luong" min="0" required oninput="updateStatusFromQuantity()">
         </div>
         <div class="form-group">
                         <label class="form-label">Trạng thái</label>
-                        <select class="form-select" name="trang_thai">
+                        <select class="form-select" name="trang_thai" id="edit_trang_thai">
                             <option value="Còn hàng">Còn hàng</option>
                             <option value="Hết hàng">Hết hàng</option>
                         </select>
@@ -340,14 +321,13 @@ Tạo và quản lý các kho hàng, theo dõi thông tin chi tiết từng kho
 let warehouseData = [];
 let filteredWarehouse = [];
 let currentPage = 1;
-const itemsPerPage = 10;
+const itemsPerPage = 20; // Popup modal: 20 items per page
 let deleteWarehouseId = null;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     loadWarehouseData();
     setupEventListeners();
-    setupPhoneValidation();
 });
 
 // Setup event listeners
@@ -367,76 +347,34 @@ function setupEventListeners() {
     document.getElementById('statusFilter').addEventListener('change', filterWarehouse);
 }
 
-// Ensure phone number accepts digits only
-function setupPhoneValidation() {
-    const phoneInput = document.getElementById('phoneNumber');
-    const countrySelect = document.getElementById('phoneCountry');
-
-    const phoneRules = {
-        '+84': { abbr: 'VN', flag: '🇻🇳', maxLength: 10, ensureLeadingZero: true, placeholder: '0XXXXXXXXX' },
-        '+1':  { abbr: 'US', flag: '🇺🇸', maxLength: 10, ensureLeadingZero: false, placeholder: 'XXXXXXXXXX' },
-        '+61': { abbr: 'AU', flag: '🇦🇺', maxLength: 9,  ensureLeadingZero: false, placeholder: 'XXXXXXXXX' },
-        '+81': { abbr: 'JP', flag: '🇯🇵', maxLength: 10, ensureLeadingZero: false, placeholder: 'XXXXXXXXXX' },
-        '+82': { abbr: 'KR', flag: '🇰🇷', maxLength: 10, ensureLeadingZero: false, placeholder: 'XXXXXXXXXX' },
-        '+65': { abbr: 'SG', flag: '🇸🇬', maxLength: 8,  ensureLeadingZero: false, placeholder: 'XXXXXXXX' }
-    };
-
-    function applyRule() {
-        const code = countrySelect?.value || '+84';
-        const rule = phoneRules[code] || phoneRules['+84'];
-        if (phoneInput) {
-            phoneInput.placeholder = rule.placeholder;
-            let digits = (phoneInput.value || '').replace(/[^0-9]/g, '');
-            if (rule.ensureLeadingZero && digits && digits[0] !== '0') {
-                digits = '0' + digits;
-            }
-            if (digits.length > rule.maxLength) {
-                digits = digits.slice(0, rule.maxLength);
-            }
-            phoneInput.value = digits;
-        }
-    }
-
-    if (phoneInput) {
-        phoneInput.addEventListener('input', function() {
-            let digits = (phoneInput.value || '').replace(/[^0-9]/g, '');
-            const code = countrySelect?.value || '+84';
-            const rule = phoneRules[code] || phoneRules['+84'];
-            if (rule.ensureLeadingZero) {
-                if (digits.length > 0 && digits[0] !== '0') {
-                    digits = '0' + digits;
-                }
-            }
-            if (digits.length > rule.maxLength) {
-                digits = digits.slice(0, rule.maxLength);
-            }
-            phoneInput.value = digits;
-        });
-    }
-
-    if (countrySelect) {
-        countrySelect.addEventListener('change', applyRule);
-    }
-
-    applyRule();
-}
+// Phone logic now handled globally by phone.js for any input[data-phone]
 
 // Load warehouse data
 async function loadWarehouseData() {
     try {
-        const response = await fetch('{{ BACKEND_URL }}/api/warehouse/');
+        const response = await fetch('{{ BACKEND_URL }}/api/warehouse/', {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
         if (response.ok) {
             warehouseData = await response.json();
+            console.log('Loaded warehouse data:', warehouseData);
+            console.log('Number of warehouses:', warehouseData.length);
             filteredWarehouse = [...warehouseData];
             updateStatistics();
             updateFilterOptions();
+            populateWarehouseDropdown(); // Populate dropdown for selection
             updateWarehouseTable();
             updatePagination();
-            } else {
-            console.error('Failed to load warehouse data');
+        } else {
+            const errorText = await response.text();
+            console.error('Failed to load warehouse data:', response.status, errorText);
+            showErrorMessage('Không thể tải dữ liệu kho hàng. Vui lòng thử lại.');
         }
     } catch (error) {
         console.error('Error loading warehouse data:', error);
+        showErrorMessage('Đã xảy ra lỗi khi tải dữ liệu kho hàng.');
     }
 }
 
@@ -467,14 +405,15 @@ async function createWarehouse(e) {
         ten_kho: raw.ten_kho,
         dia_chi: (raw.dia_chi || '').toString(),
         dien_thoai: (function(){
-            const code = (document.getElementById('phoneCountry')?.value || '+84');
-            const local = (raw.dien_thoai_local || '').replace(/[^0-9]/g, '');
-            return local ? `${code}${local}` : undefined;
+            const el = document.querySelector('input[data-phone][name="dien_thoai"]');
+            const full = window.getPhoneValue(el);
+            return full || undefined;
         })(),
-        so_luong_sp: parseInt(raw.so_luong || '0'),
+        ma_sp: raw.ma_sp || undefined,  // Thêm ma_sp
+        gia_nhap: parseFloat(document.getElementById('create_gia_nhap').value || '0') || undefined,  // Thêm gia_nhap
+        so_luong: parseInt(raw.so_luong || '0'),  // Đổi từ so_luong_sp sang so_luong
+        ghi_chu: raw.ghi_chu || undefined,  // Đổi từ mo_ta sang ghi_chu
         trang_thai: 'Hoạt động',
-        nhom_san_pham: undefined,
-        mo_ta: raw.ghi_chu || undefined,
     };
 
     try {
@@ -491,6 +430,11 @@ async function createWarehouse(e) {
             document.getElementById('createWarehouseForm').reset();
             clearModalState('createWarehouseForm');
             storeModalState('createWarehouseForm', document.getElementById('createWarehouseForm'));
+            
+            // Reset money input fields
+            document.getElementById('create_gia_nhap_display').value = '';
+            document.getElementById('create_gia_nhap').value = '';
+            
             loadWarehouseData();
             showSuccessMessage('Tạo kho hàng thành công!');
         } else {
@@ -508,6 +452,40 @@ function resetForm() {
     form.reset();
     clearModalState('createWarehouseForm');
     storeModalState('createWarehouseForm', form);
+    
+    // Reset dropdown
+    const select = document.getElementById('selectExistingWarehouse');
+    if (select) {
+        select.value = '';
+        select.style.display = 'none';
+    }
+    const icon = document.getElementById('warehouseDropdownIcon');
+    if (icon) {
+        icon.style.transform = 'rotate(0deg)';
+    }
+    
+    // Reset phone component if needed
+    const phoneInput = document.querySelector('input[data-phone][name="dien_thoai"]') || 
+                       document.getElementById('dien_thoai_input');
+    if (phoneInput) {
+        if (window.setPhoneValue) {
+            window.setPhoneValue(phoneInput, '');
+        } else {
+            const phoneContainer = phoneInput.closest('.phone-input-container');
+            if (phoneContainer) {
+                const countrySelect = phoneContainer.querySelector('.phone-country-select');
+                const numberInput = phoneContainer.querySelector('.phone-number-input');
+                if (countrySelect) countrySelect.value = 'VN';
+                if (numberInput) numberInput.value = '';
+            } else {
+                phoneInput.value = '';
+            }
+        }
+    }
+    
+    // Reset money input fields
+    document.getElementById('create_gia_nhap_display').value = '';
+    document.getElementById('create_gia_nhap').value = '';
 }
 
 // Update filter options
@@ -544,6 +522,110 @@ function updateFilterOptions() {
         option.textContent = group;
         groupSelect.appendChild(option);
     });
+}
+
+// Populate warehouse dropdown for selection
+function populateWarehouseDropdown() {
+    const select = document.getElementById('selectExistingWarehouse');
+    if (!select) return;
+    
+    // Get unique warehouses by ma_kho
+    const warehouseMap = new Map();
+    warehouseData.forEach(item => {
+        if (!warehouseMap.has(item.ma_kho)) {
+            warehouseMap.set(item.ma_kho, {
+                ma_kho: item.ma_kho,
+                ten_kho: item.ten_kho,
+                dien_thoai: item.dien_thoai,
+                dia_chi: item.dia_chi
+            });
+        }
+    });
+    
+    // Clear existing options except first
+    select.innerHTML = '<option value="">-- Chọn kho hàng --</option>';
+    
+    // Add warehouses to dropdown
+    Array.from(warehouseMap.values()).forEach(warehouse => {
+        const option = document.createElement('option');
+        option.value = warehouse.ma_kho;
+        option.textContent = `${warehouse.ma_kho} - ${warehouse.ten_kho}`;
+        option.dataset.warehouse = JSON.stringify(warehouse);
+        select.appendChild(option);
+    });
+}
+
+// Toggle warehouse dropdown visibility
+function toggleWarehouseDropdown() {
+    const select = document.getElementById('selectExistingWarehouse');
+    const icon = document.getElementById('warehouseDropdownIcon');
+    
+    if (select && icon) {
+        const isVisible = select.style.display !== 'none';
+        select.style.display = isVisible ? 'none' : 'block';
+        icon.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+}
+
+// Fill form fields when warehouse is selected
+function fillWarehouseFromSelection(maKho) {
+    if (!maKho) {
+        // Clear form if no selection
+        document.getElementById('ma_kho_input').value = '';
+        document.getElementById('ten_kho_input').value = '';
+        document.getElementById('dia_chi_input').value = '';
+        const phoneInput = document.querySelector('input[data-phone][name="dien_thoai"]') || 
+                           document.getElementById('dien_thoai_input');
+        if (phoneInput) {
+            if (window.setPhoneValue) {
+                window.setPhoneValue(phoneInput, '');
+            } else {
+                phoneInput.value = '';
+                // Reset phone component if needed
+                const phoneContainer = phoneInput.closest('.phone-input-container');
+                if (phoneContainer) {
+                    const select = phoneContainer.querySelector('.phone-country-select');
+                    if (select) select.value = 'VN';
+                }
+            }
+        }
+        return;
+    }
+    
+    const select = document.getElementById('selectExistingWarehouse');
+    const selectedOption = select.querySelector(`option[value="${maKho}"]`);
+    
+    if (selectedOption && selectedOption.dataset.warehouse) {
+        try {
+            const warehouse = JSON.parse(selectedOption.dataset.warehouse);
+            
+            // Fill form fields
+            document.getElementById('ma_kho_input').value = warehouse.ma_kho || '';
+            document.getElementById('ten_kho_input').value = warehouse.ten_kho || '';
+            document.getElementById('dia_chi_input').value = warehouse.dia_chi || '';
+            
+            // Set phone value using phone component
+            const phoneInput = document.querySelector('input[data-phone][name="dien_thoai"]') || 
+                               document.getElementById('dien_thoai_input');
+            if (phoneInput && warehouse.dien_thoai) {
+                if (window.setPhoneValue) {
+                    window.setPhoneValue(phoneInput, warehouse.dien_thoai);
+                } else {
+                    phoneInput.value = warehouse.dien_thoai;
+                }
+            }
+            
+            // Clear product fields so user can enter new product
+            document.querySelector('input[name="ma_sp"]').value = '';
+            document.getElementById('create_gia_nhap_display').value = '';
+            document.getElementById('create_gia_nhap').value = '';
+            document.querySelector('input[name="so_luong"]').value = '';
+            document.querySelector('textarea[name="ghi_chu"]').value = '';
+            
+        } catch (error) {
+            console.error('Error parsing warehouse data:', error);
+        }
+    }
 }
 
 // Filter warehouse
@@ -612,9 +694,6 @@ function updateWarehouseTable() {
             <td>${getStatusBadge(status)}</td>
             <td>
                 <div class="table-actions">
-                    <button class="btn btn-sm btn-secondary" onclick="viewWarehouse(${item.id})">
-                        <i class="fas fa-eye"></i>
-                    </button>
                     <button class="btn btn-sm btn-primary" onclick="editWarehouse(${item.id})">
                         <i class="fas fa-edit"></i>
                     </button>
@@ -693,57 +772,22 @@ function goToPage(page) {
     }
 }
 
-// Modal functions
-function viewWarehouse(id) {
-    const item = warehouseData.find(w => w.id === id);
-    if (item) {
-        const details = document.getElementById('warehouseDetails');
-        details.innerHTML = `
-            <div class="warehouse-details">
-                <div class="detail-row">
-                    <span class="detail-label">Mã kho:</span>
-                    <span class="detail-value">${item.ma_kho}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Tên kho:</span>
-                    <span class="detail-value">${item.ten_kho}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Mã sản phẩm:</span>
-                    <span class="detail-value">${item.ma_sp || '-'}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Địa chỉ:</span>
-                    <span class="detail-value">${item.dia_chi || '-'}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Số lượng:</span>
-                    <span class="detail-value">${(item.so_luong || 0).toLocaleString()}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Giá nhập:</span>
-                    <span class="detail-value">${(item.gia_nhap || 0).toLocaleString()} VNĐ</span>
-                </div>
-                
-                <div class="detail-row">
-                    <span class="detail-label">Trạng thái:</span>
-                    <span class="detail-value">${getStatusBadge(item.trang_thai)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Ghi chú:</span>
-                    <span class="detail-value">${item.ghi_chu || '-'}</span>
-                </div>
-            </div>
-        `;
-        
-        document.getElementById('viewWarehouseModal').style.display = 'flex';
+// Update status based on quantity
+function updateStatusFromQuantity() {
+    const quantityInput = document.getElementById('edit_so_luong');
+    const statusSelect = document.getElementById('edit_trang_thai');
+    
+    if (quantityInput && statusSelect) {
+        const quantity = parseInt(quantityInput.value) || 0;
+        if (quantity > 0) {
+            statusSelect.value = 'Còn hàng';
+        } else {
+            statusSelect.value = 'Hết hàng';
+        }
     }
 }
 
-function closeViewWarehouseModal() {
-    document.getElementById('viewWarehouseModal').style.display = 'none';
-}
-
+// Modal functions
 function editWarehouse(id) {
     const item = warehouseData.find(w => w.id === id);
     if (item) {
@@ -751,19 +795,26 @@ function editWarehouse(id) {
         form.querySelector('input[name="id"]').value = item.id;
         form.querySelector('input[name="ma_kho"]').value = item.ma_kho || '';
         form.querySelector('input[name="ten_kho"]').value = item.ten_kho || '';
-        form.querySelector('input[name="nhom_san_pham"]').value = item.nhom_san_pham || '';
         form.querySelector('input[name="ma_sp"]').value = item.ma_sp || '';
-        form.querySelector('input[name="ten_sp"]').value = item.ten_sp || '';
-        form.querySelector('input[name="so_luong"]').value = item.so_luong || 0;
-        form.querySelector('select[name="trang_thai"]').value = item.trang_thai || '';
+        
+        const soLuong = item.so_luong || 0;
+        form.querySelector('input[name="so_luong"]').value = soLuong;
+        
+        // Set status based on quantity
+        const statusSelect = form.querySelector('select[name="trang_thai"]');
+        if (statusSelect) {
+            if (soLuong > 0) {
+                statusSelect.value = 'Còn hàng';
+            } else {
+                statusSelect.value = 'Hết hàng';
+            }
+        }
+        
         form.querySelector('textarea[name="ghi_chu"]').value = item.ghi_chu || '';
         
         const giaNhap = item.gia_nhap || 0;
         document.getElementById('edit_gia_nhap').value = giaNhap;
         document.getElementById('edit_gia_nhap_display').value = giaNhap.toLocaleString();
-        
-        // Store initial state for edit modal
-        storeModalState('editWarehouseModal', form);
         
         // Store initial state for edit modal
         storeModalState('editWarehouseModal', form);
@@ -787,8 +838,9 @@ async function updateWarehouse() {
     data.so_luong = parseInt(data.so_luong || '0');
     data.gia_nhap = parseInt(document.getElementById('edit_gia_nhap').value || '0');
     
-    // Update status based on quantity
-    if (data.so_luong > 0) {
+    // Update status based on quantity (ensure it matches current quantity)
+    const currentQuantity = data.so_luong;
+    if (currentQuantity > 0) {
         data.trang_thai = 'Còn hàng';
     } else {
         data.trang_thai = 'Hết hàng';

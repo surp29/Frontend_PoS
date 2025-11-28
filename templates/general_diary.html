@@ -61,33 +61,19 @@ Quản lý và theo dõi các giao dịch tài chính, nhập liệu thông tin 
     </div>
     <div class="card-body">
         <form id="generalDiaryForm">
+            <!-- Row 1: Ngày nhập | Mã kí hiệu -->
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Ngày nhập hàng *</label>
+                    <label class="form-label">Ngày nhập *</label>
                     <input type="date" class="form-input" name="ngay_nhap" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Số hiệu *</label>
-                    <input type="text" class="form-input" name="so_hieu" required placeholder="PC/PT(xxxx)">
+                    <label class="form-label">Mã kí hiệu *</label>
+                    <input type="text" class="form-input" name="so_hieu" required placeholder="Nhập mã kí hiệu">
                 </div>
             </div>
             
-            <div class="form-group">
-                <label class="form-label">Diễn giải</label>
-                <textarea class="form-textarea" name="dien_giai" rows="3" placeholder="Mô tả giao dịch..."></textarea>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">TK nợ</label>
-                    <input type="text" class="form-input" name="tk_no" placeholder="Nhập tài khoản nợ">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">TK có</label>
-                    <input type="text" class="form-input" name="tk_co" placeholder="Nhập tài khoản có">
-                </div>
-            </div>
-            
+            <!-- Row 2: Số lượng nhập | Số lượng xuất -->
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Số lượng nhập</label>
@@ -96,17 +82,24 @@ Quản lý và theo dõi các giao dịch tài chính, nhập liệu thông tin 
                 <div class="form-group">
                     <label class="form-label">Số lượng xuất</label>
                     <input type="number" class="form-input" name="so_luong_xuat" min="0" placeholder="0" oninput="validatePositiveInteger(this)">
-      </div>
-      </div>
+                </div>
+            </div>
             
-            <div class="form-group">
-                <label class="form-label">Tổng tiền</label>
-                <div class="money-input-container">
-                    <input type="text" id="so_tien_display" class="form-input" placeholder="0" oninput="formatMoneyTyping(this, document.getElementById('so_tien'))">
-        <input type="hidden" name="so_tien" id="so_tien">
-        <span class="currency-unit">VNĐ</span>
-      </div>
-       </div>
+            <!-- Row 3: Tổng tiền | Ghi chú -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Tổng tiền</label>
+                    <div class="money-input-container">
+                        <input type="text" id="so_tien_display" class="form-input" placeholder="0" oninput="formatMoneyTyping(this, document.getElementById('so_tien'))">
+                        <input type="hidden" name="so_tien" id="so_tien">
+                        <span class="currency-unit">VNĐ</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ghi chú</label>
+                    <textarea class="form-textarea" name="dien_giai" rows="3" placeholder="Nhập ghi chú..."></textarea>
+                </div>
+            </div>
       
             <div class="form-group">
                 <button type="submit" class="btn btn-primary">
@@ -129,7 +122,7 @@ Quản lý và theo dõi các giao dịch tài chính, nhập liệu thông tin 
             <label class="form-label">Tìm kiếm</label>
             <div class="search-input">
                 <i class="fas fa-search"></i>
-                <input type="text" class="form-input" id="searchEntry" placeholder="Tìm theo số hiệu, diễn giải...">
+                <input type="text" class="form-input" id="searchEntry" placeholder="Tìm theo mã kí hiệu, ghi chú...">
             </div>
         </div>
         
@@ -164,10 +157,8 @@ Quản lý và theo dõi các giao dịch tài chính, nhập liệu thông tin 
                     <tr>
                         <th>STT</th>
                         <th>Ngày nhập</th>
-                        <th>Số hiệu</th>
-                        <th>Diễn giải</th>
-                        <th>TK nợ</th>
-                        <th>TK có</th>
+                        <th>Mã kí hiệu</th>
+                        <th>Ghi chú</th>
                         <th>Số lượng nhập</th>
                         <th>Số lượng xuất</th>
                         <th>Tổng tiền</th>
@@ -200,33 +191,19 @@ Quản lý và theo dõi các giao dịch tài chính, nhập liệu thông tin 
             <form id="editEntryForm">
                 <input type="hidden" name="id">
                 
+                <!-- Row 1: Ngày nhập | Mã kí hiệu -->
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Ngày nhập hàng *</label>
+                        <label class="form-label">Ngày nhập *</label>
                         <input type="date" class="form-input" name="ngay_nhap" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Số hiệu *</label>
-                        <input type="text" class="form-input" name="so_hieu" required>
+                        <label class="form-label">Mã kí hiệu *</label>
+                        <input type="text" class="form-input" name="so_hieu" required placeholder="Nhập mã kí hiệu">
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label class="form-label">Diễn giải</label>
-                    <textarea class="form-textarea" name="dien_giai" rows="3"></textarea>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">TK nợ</label>
-                        <input type="text" class="form-input" name="tk_no">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">TK có</label>
-                        <input type="text" class="form-input" name="tk_co">
-                    </div>
-                </div>
-                
+                <!-- Row 2: Số lượng nhập | Số lượng xuất -->
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Số lượng nhập</label>
@@ -238,12 +215,19 @@ Quản lý và theo dõi các giao dịch tài chính, nhập liệu thông tin 
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label class="form-label">Tổng tiền</label>
-                    <div class="money-input-container">
-                        <input type="text" id="edit_so_tien_display" class="form-input" oninput="formatMoneyTyping(this, document.getElementById('edit_so_tien'))">
-                        <input type="hidden" name="so_tien" id="edit_so_tien">
-                        <span class="currency-unit">VNĐ</span>
+                <!-- Row 3: Tổng tiền | Ghi chú -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tổng tiền</label>
+                        <div class="money-input-container">
+                            <input type="text" id="edit_so_tien_display" class="form-input" oninput="formatMoneyTyping(this, document.getElementById('edit_so_tien'))">
+                            <input type="hidden" name="so_tien" id="edit_so_tien">
+                            <span class="currency-unit">VNĐ</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea class="form-textarea" name="dien_giai" rows="3" placeholder="Nhập ghi chú..."></textarea>
                     </div>
                 </div>
             </form>
@@ -307,6 +291,13 @@ function setupEventListeners() {
     document.getElementById('searchEntry').addEventListener('input', debounce(filterEntries, 300));
     document.getElementById('dateFrom').addEventListener('change', filterEntries);
     document.getElementById('dateTo').addEventListener('change', filterEntries);
+    
+    // Set today's date as default for create form
+    const todayInput = document.getElementById('generalDiaryForm').querySelector('input[name="ngay_nhap"]');
+    if (todayInput) {
+        const today = new Date();
+        todayInput.value = today.toISOString().split('T')[0];
+    }
 }
 
 // Load entries data
@@ -366,6 +357,12 @@ async function createEntry(e) {
     body: JSON.stringify(data)
         });
         
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ detail: 'Lỗi không xác định' }));
+            showErrorMessage(errorData.detail || `Lỗi ${response.status}: ${response.statusText}`);
+            return;
+        }
+        
         const result = await response.json();
     if (result.success) {
       document.getElementById('generalDiaryForm').reset();
@@ -402,7 +399,7 @@ function filterEntries() {
     filteredEntries = entriesData.filter(entry => {
         const matchesSearch = !searchTerm || 
                              (entry.so_hieu && entry.so_hieu.toLowerCase().includes(searchTerm)) ||
-                             (entry.dien_giai && entry.dien_giai.toLowerCase().includes(searchTerm));
+                             (entry.dien_giai && entry.dien_giai && entry.dien_giai.toLowerCase().includes(searchTerm));
         
         const entryDate = entry.ngay_nhap;
         const matchesDateFrom = !dateFrom || !entryDate || entryDate >= dateFrom;
@@ -441,8 +438,6 @@ function updateEntriesTable() {
             <td>${entry.ngay_nhap || '-'}</td>
             <td><strong>${entry.so_hieu || '-'}</strong></td>
             <td>${entry.dien_giai || '-'}</td>
-            <td>${entry.tk_no || '-'}</td>
-            <td>${entry.tk_co || '-'}</td>
             <td>${(entry.so_luong_nhap || 0).toLocaleString()}</td>
             <td>${(entry.so_luong_xuat || 0).toLocaleString()}</td>
             <td>${(entry.so_tien || 0).toLocaleString()} VNĐ</td>
@@ -534,8 +529,6 @@ function editEntry(id) {
         form.querySelector('input[name="ngay_nhap"]').value = entry.ngay_nhap || '';
         form.querySelector('input[name="so_hieu"]').value = entry.so_hieu || '';
         form.querySelector('textarea[name="dien_giai"]').value = entry.dien_giai || '';
-        form.querySelector('input[name="tk_no"]').value = entry.tk_no || '';
-        form.querySelector('input[name="tk_co"]').value = entry.tk_co || '';
         form.querySelector('input[name="so_luong_nhap"]').value = entry.so_luong_nhap || 0;
         form.querySelector('input[name="so_luong_xuat"]').value = entry.so_luong_xuat || 0;
         
@@ -580,7 +573,7 @@ async function updateEntry() {
         if (result.success) {
             document.getElementById('editEntryModal').style.display = 'none';
             clearModalState('editEntryModal');
-            loadEntryData();
+            loadEntriesData();
             showSuccessMessage('Cập nhật thành công!');
         } else {
             showErrorMessage(result.message || 'Có lỗi xảy ra khi cập nhật');
@@ -624,50 +617,7 @@ async function confirmDeleteEntry() {
     }
 }
 
-// Utility functions
-function validatePositiveInteger(input) {
-  let value = input.value;
-  value = value.replace(/[^\d]/g, '');
-  if (value === '') {
-    input.value = '';
-    return;
-  }
-  let num = parseInt(value);
-  if (num < 0) {
-    num = 0;
-  }
-  input.value = num;
-}
-
-function formatMoneyTyping(sourceInput, hiddenInput) {
-  const raw = (sourceInput.value || '').replace(/[^0-9]/g, '');
-  if (!raw) {
-    sourceInput.value = '';
-    if (hiddenInput) hiddenInput.value = '';
-    return;
-  }
-  if (hiddenInput) hiddenInput.value = raw;
-  sourceInput.value = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-function showSuccessMessage(message) {
-    showSuccessModal('Thành công', message);
-}
-
-function showErrorMessage(message) {
-    showErrorModal('Lỗi', message);
-}
+// Utility functions - đã được định nghĩa trong utils.js
+// Các hàm validatePositiveInteger, formatMoneyTyping, debounce, showSuccessMessage, showErrorMessage đã có trong utils.js
 </script>
 {% endblock %}

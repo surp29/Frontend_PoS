@@ -61,14 +61,25 @@ Tạo và quản lý các khu vực kinh doanh, theo dõi thông tin chi tiết 
     </div>
     <div class="card-body">
         <form id="createAreaForm">
+            <div class="form-group" style="margin-bottom: var(--spacing-5);">
+                <label class="form-label" style="cursor: pointer; display: flex; align-items: center; gap: var(--spacing-2);" onclick="toggleAreaDropdown()">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Chọn khu vực có sẵn
+                    <i class="fas fa-chevron-down" id="areaDropdownIcon" style="margin-left: auto; transition: transform 0.3s;"></i>
+                </label>
+                <select class="form-select" id="selectExistingArea" style="display: none; margin-top: var(--spacing-2);" onchange="fillAreaFromSelection(this.value)">
+                    <option value="">-- Chọn khu vực --</option>
+                </select>
+            </div>
+            
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Tên khu vực *</label>
-                    <input type="text" class="form-input" name="name" required placeholder="Nhập tên khu vực">
+                    <input type="text" class="form-input" name="name" id="name_input" required placeholder="Nhập tên khu vực">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Mã khu vực *</label>
-                    <input type="text" class="form-input" name="code" required placeholder="Nhập mã khu vực">
+                    <input type="text" class="form-input" name="code" id="code_input" required placeholder="Nhập mã khu vực">
                 </div>
             </div>
             
@@ -84,18 +95,18 @@ Tạo và quản lý các khu vực kinh doanh, theo dõi thông tin chi tiết 
                 </div>
                 <div class="form-group">
                     <label class="form-label">Tỉnh/Thành phố *</label>
-                    <input type="text" class="form-input" name="province" required placeholder="Nhập tỉnh/thành phố">
+                    <input type="text" class="form-input" name="province" id="province_input" required placeholder="Nhập tỉnh/thành phố">
                 </div>
             </div>
             
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Địa chỉ</label>
-                    <input type="text" class="form-input" name="address" placeholder="Nhập địa chỉ">
+                    <input type="text" class="form-input" name="address" id="address_input" placeholder="Nhập địa chỉ">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Số điện thoại</label>
-                    <input type="tel" class="form-input" name="phone" placeholder="Nhập số điện thoại">
+                    <input type="tel" class="form-input" data-phone name="phone" id="phone_input" placeholder="Nhập số điện thoại">
                 </div>
             </div>
             
@@ -282,7 +293,7 @@ Tạo và quản lý các khu vực kinh doanh, theo dõi thông tin chi tiết 
                     </div>
                     <div class="form-group">
                         <label class="form-label">Số điện thoại</label>
-                        <input type="tel" class="form-input" name="phone">
+                        <input type="tel" class="form-input" data-phone name="phone">
                     </div>
                 </div>
                 
@@ -455,8 +466,14 @@ async function loadAreasData() {
         const response = await fetch('{{ BACKEND_URL }}/api/areas/');
         if (response.ok) {
             areasData = await response.json();
+            console.log('Loaded areas data:', areasData);
+            // Debug: log phone numbers
+            areasData.forEach(area => {
+                console.log(`Area ${area.id} (${area.name}): phone =`, area.phone);
+            });
             filteredAreas = [...areasData];
             updateStatistics();
+            populateAreaDropdown(); // Populate dropdown for selection
             updateAreasTable();
             updatePagination();
         } else {
@@ -489,6 +506,8 @@ async function createArea(e) {
     const form = document.getElementById('createAreaForm');
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
+    const phoneEl = form.querySelector('input[data-phone][name="phone"]');
+    if (phoneEl) data.phone = window.getPhoneValue(phoneEl) || '';
     
     try {
         const response = await fetch('{{ BACKEND_URL }}/api/areas/', {
@@ -521,6 +540,35 @@ function resetForm() {
     form.reset();
     clearModalState('createAreaForm');
     storeModalState('createAreaForm', form);
+    
+    // Reset dropdown
+    const select = document.getElementById('selectExistingArea');
+    if (select) {
+        select.value = '';
+        select.style.display = 'none';
+    }
+    const icon = document.getElementById('areaDropdownIcon');
+    if (icon) {
+        icon.style.transform = 'rotate(0deg)';
+    }
+    
+    // Reset phone component if needed
+    const phoneInput = document.getElementById('phone_input');
+    if (phoneInput) {
+        if (window.setPhoneValue) {
+            window.setPhoneValue(phoneInput, '');
+        } else {
+            const phoneContainer = phoneInput.closest('.phone-input-container');
+            if (phoneContainer) {
+                const countrySelect = phoneContainer.querySelector('.phone-country-select');
+                const numberInput = phoneContainer.querySelector('.phone-number-input');
+                if (countrySelect) countrySelect.value = 'VN';
+                if (numberInput) numberInput.value = '';
+            } else {
+                phoneInput.value = '';
+            }
+        }
+    }
 }
 
 // Filter areas
@@ -532,10 +580,10 @@ function filterAreas() {
     
     filteredAreas = areasData.filter(area => {
         const matchesSearch = !searchTerm || 
-                             area.ten_khu_vuc.toLowerCase().includes(searchTerm) ||
-                             area.ma_khu_vuc.toLowerCase().includes(searchTerm) ||
+                             (area.name && area.name.toLowerCase().includes(searchTerm)) ||
+                             (area.code && area.code.toLowerCase().includes(searchTerm)) ||
                              (area.province && area.province.toLowerCase().includes(searchTerm));
-        const matchesType = !typeFilter || area.loai_khu_vuc === typeFilter;
+        const matchesType = !typeFilter || area.type === typeFilter;
         const matchesStatus = !statusFilter || area.status === statusFilter;
         const matchesPriority = !priorityFilter || area.priority === priorityFilter;
         
@@ -569,9 +617,9 @@ function updateAreasTable() {
     
     tbody.innerHTML = pageAreas.map(area => `
         <tr>
-            <td><strong>${area.ma_khu_vuc}</strong></td>
-            <td>${area.ten_khu_vuc}</td>
-            <td><span class="badge badge-info">${getTypeText(area.loai_khu_vuc)}</span></td>
+            <td><strong>${area.code || '-'}</strong></td>
+            <td>${area.name || '-'}</td>
+            <td><span class="badge badge-info">${getTypeText(area.type)}</span></td>
             <td>${area.province || '-'}</td>
             <td>${area.address || '-'}</td>
             <td>${area.phone || '-'}</td>
@@ -669,15 +717,15 @@ function viewArea(id) {
             <div class="area-details">
                 <div class="detail-row">
                     <span class="detail-label">Tên khu vực:</span>
-                    <span class="detail-value">${area.ten_khu_vuc}</span>
+                    <span class="detail-value">${area.name || '-'}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Mã khu vực:</span>
-                    <span class="detail-value">${area.ma_khu_vuc}</span>
+                    <span class="detail-value">${area.code || '-'}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Loại khu vực:</span>
-                    <span class="detail-value">${getTypeText(area.loai_khu_vuc)}</span>
+                    <span class="detail-value">${getTypeText(area.type)}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Tỉnh/Thành phố:</span>
@@ -720,28 +768,526 @@ function closeViewAreaModal() {
 
 function editArea(id) {
     const area = areasData.find(a => a.id === id);
-    if (area) {
+    if (!area) {
+        console.error('Area not found:', id);
+        return;
+    }
+    
+    console.log('Editing area:', area);
+    console.log('Area phone from data:', area.phone);
+    
         const form = document.getElementById('editAreaForm');
+    const modal = document.getElementById('editAreaModal');
+    
+    if (!form || !modal) {
+        console.error('Form or modal not found');
+        return;
+    }
+    
+    // Fill basic fields
         form.querySelector('input[name="id"]').value = area.id;
-        form.querySelector('input[name="name"]').value = area.ten_khu_vuc;
-        form.querySelector('input[name="code"]').value = area.ma_khu_vuc;
-        form.querySelector('select[name="type"]').value = area.loai_khu_vuc;
+    form.querySelector('input[name="name"]').value = area.name || '';
+    form.querySelector('input[name="code"]').value = area.code || '';
+    form.querySelector('select[name="type"]').value = area.type || '';
         form.querySelector('input[name="province"]').value = area.province || '';
         form.querySelector('input[name="address"]').value = area.address || '';
-        form.querySelector('input[name="phone"]').value = area.phone || '';
         form.querySelector('input[name="manager"]').value = area.manager || '';
-        form.querySelector('select[name="priority"]').value = area.priority;
+    form.querySelector('select[name="priority"]').value = area.priority || 'medium';
         form.querySelector('textarea[name="description"]').value = area.description || '';
         
-        // Store initial state for edit modal
-        storeModalState('editAreaModal', form);
+    // Show modal first
+    modal.style.display = 'flex';
+    
+    // Set phone value after modal is visible and phone component is ready
+    const phoneInput = form.querySelector('input[data-phone][name="phone"]');
+    console.log('Phone input found:', !!phoneInput);
+    
+    if (!phoneInput) {
+        console.warn('Phone input not found in edit form');
+        return;
+    }
+    
+    if (!area.phone) {
+        console.warn('No phone value in area data');
+        return;
+    }
+    
+    console.log('Setting phone value:', area.phone);
+    
+    // Force initialize phone component for this specific input
+    // Wait for modal to be fully visible first
+    setTimeout(() => {
+        // Check if phone input is already wrapped
+        let container = phoneInput.closest('.phone-input-container');
+        console.log('Phone container found (before init):', !!container);
         
-        document.getElementById('editAreaModal').style.display = 'flex';
+        // If not wrapped, force wrap it
+        if (!container) {
+            console.log('Phone input not wrapped, forcing initialization...');
+            
+            // Try to use wrapPhoneInput directly first
+            if (window.wrapPhoneInput) {
+                console.log('Using wrapPhoneInput directly...');
+                try {
+                    // Check if there are any existing containers first and remove them
+                    const formGroup = phoneInput.closest('.form-group');
+                    if (formGroup) {
+                        const existingContainers = formGroup.querySelectorAll('.phone-input-container');
+                        if (existingContainers.length > 0) {
+                            console.log('Removing existing phone containers before wrapping');
+                            existingContainers.forEach(container => container.remove());
+                        }
+                    }
+                    
+                    window.wrapPhoneInput(phoneInput);
+                    // Wait a bit for wrapping to complete
+                    setTimeout(() => {
+                        container = phoneInput.closest('.phone-input-container');
+                        if (container) {
+                            console.log('Successfully wrapped with wrapPhoneInput');
+                            if (window.setPhoneValue) {
+                                window.setPhoneValue(phoneInput, area.phone);
+                                // Store initial state after phone value is set
+                                setTimeout(() => {
+                                    storeModalState('editAreaModal', form);
+                                }, 100);
+                            } else {
+                                setPhoneValueManually(container, area.phone);
+                                // Store initial state after phone value is set
+                                setTimeout(() => {
+                                    storeModalState('editAreaModal', form);
+                                }, 100);
+                            }
+                        } else {
+                            console.warn('wrapPhoneInput failed, trying manual wrap...');
+                            manuallyWrapPhoneInput(phoneInput, area.phone);
+                        }
+                    }, 100);
+                } catch (error) {
+                    console.error('Error wrapping phone input:', error);
+                    manuallyWrapPhoneInput(phoneInput, area.phone);
+                }
+            } else {
+                // Fallback to initializePhoneInputs
+                console.log('wrapPhoneInput not available, using initializePhoneInputs...');
+                if (window.initializePhoneInputs) {
+                    window.initializePhoneInputs();
+                    setTimeout(() => {
+                        container = phoneInput.closest('.phone-input-container');
+                        if (container) {
+                            console.log('Successfully wrapped with initializePhoneInputs');
+                            if (window.setPhoneValue) {
+                                window.setPhoneValue(phoneInput, area.phone);
+                                // Store initial state after phone value is set
+                                setTimeout(() => {
+                                    storeModalState('editAreaModal', form);
+                                }, 100);
+                            } else {
+                                setPhoneValueManually(container, area.phone);
+                                // Store initial state after phone value is set
+                                setTimeout(() => {
+                                    storeModalState('editAreaModal', form);
+                                }, 100);
+                            }
+                        } else {
+                            console.warn('initializePhoneInputs failed, trying manual wrap...');
+                            manuallyWrapPhoneInput(phoneInput, area.phone);
+                        }
+                    }, 200);
+                } else {
+                    console.error('No phone wrapping function available, using manual wrap...');
+                    manuallyWrapPhoneInput(phoneInput, area.phone);
+                }
+            }
+        } else {
+            // Already wrapped, just set the value
+            console.log('Phone container already exists, setting value');
+            if (window.setPhoneValue) {
+                window.setPhoneValue(phoneInput, area.phone);
+                // Store initial state after phone value is set
+                setTimeout(() => {
+                    storeModalState('editAreaModal', form);
+                }, 100);
+            } else {
+                setPhoneValueManually(container, area.phone);
+                // Store initial state after phone value is set
+                setTimeout(() => {
+                    storeModalState('editAreaModal', form);
+                }, 100);
+            }
+        }
+    }, 150); // Slightly increased timeout to ensure modal is fully rendered
+}
+
+// Helper function to initialize phone component for a specific input
+function initializePhoneForInput(phoneInput, phoneValue) {
+    if (!phoneInput) return;
+    
+    // Check if already wrapped
+    if (phoneInput.closest('.phone-input-container')) {
+        console.log('Input already wrapped, setting value');
+        if (window.setPhoneValue) {
+            window.setPhoneValue(phoneInput, phoneValue);
+        } else {
+            const container = phoneInput.closest('.phone-input-container');
+            if (container) {
+                setPhoneValueManually(container, phoneValue);
+            }
+        }
+        return;
+    }
+    
+    // Force wrap the input
+    console.log('Wrapping phone input...');
+    if (window.wrapPhoneInput) {
+        // If wrapPhoneInput is available, use it
+        window.wrapPhoneInput(phoneInput);
+    } else if (window.initializePhoneInputs) {
+        // Otherwise, call initializePhoneInputs which should wrap it
+        window.initializePhoneInputs();
+    }
+    
+    // Wait for wrapping to complete
+    setTimeout(() => {
+        const container = phoneInput.closest('.phone-input-container');
+        console.log('Phone container after wrap:', !!container);
+        
+        if (container) {
+            console.log('Container created successfully, setting value');
+            if (window.setPhoneValue) {
+                window.setPhoneValue(phoneInput, phoneValue);
+            } else {
+                setPhoneValueManually(container, phoneValue);
+            }
+        } else {
+            console.error('Failed to create phone container, trying manual wrap...');
+            // Last resort: manually create container
+            manuallyWrapPhoneInput(phoneInput, phoneValue);
+        }
+    }, 200);
+}
+
+// Last resort: manually wrap phone input
+function manuallyWrapPhoneInput(input, phoneValue) {
+    if (!input) return;
+    
+    const formGroup = input.closest('.form-group');
+    if (!formGroup) {
+        console.error('Form group not found');
+        return;
+    }
+    
+    // Check if already wrapped
+    if (input.closest('.phone-input-container')) {
+        console.log('Input already wrapped, skipping manual wrap');
+        return;
+    }
+    
+    // Remove any existing phone containers in this form group to avoid duplicates
+    const existingContainers = formGroup.querySelectorAll('.phone-input-container');
+    existingContainers.forEach(container => {
+        console.log('Removing duplicate phone container');
+        container.remove();
+    });
+    
+    console.log('Manually wrapping phone input...');
+    
+    // Hide the original input completely (same as phone.js does)
+    input.style.display = 'none';
+    input.style.visibility = 'hidden';
+    input.style.position = 'absolute';
+    input.style.width = '0';
+    input.style.height = '0';
+    input.style.opacity = '0';
+    input.setAttribute('data-phone-hidden', 'true');
+    
+    // Hide the label associated with the original input if it exists
+    const labels = formGroup.querySelectorAll('label.form-label');
+    labels.forEach(label => {
+        if (label.getAttribute('for') === input.id) {
+            // Label is linked via 'for' attribute
+            label.style.display = 'none';
+        } else if (label.textContent.trim().includes('Số điện thoại')) {
+            // Check if this is the original label (before any phone containers)
+            const phoneContainers = formGroup.querySelectorAll('.phone-input-container');
+            if (phoneContainers.length > 0) {
+                // If there are phone containers, hide labels that come before them
+                const labelIndex = Array.from(formGroup.children).indexOf(label);
+                const firstContainerIndex = Array.from(formGroup.children).indexOf(phoneContainers[0]);
+                if (labelIndex < firstContainerIndex) {
+                    label.style.display = 'none';
+                }
+            }
+        }
+    });
+    
+    // Create container
+    const container = document.createElement('div');
+    container.className = 'phone-input-container';
+    
+    // Create country select
+    const countrySelect = document.createElement('select');
+    countrySelect.className = 'form-select phone-country-select';
+    countrySelect.setAttribute('data-country-select', 'true');
+    
+    // Add country options (Vietnam first) - use same countries as phone.js
+    const countries = [
+        { code: 'VN', name: 'Việt Nam', dialCode: '+84', flag: '🇻🇳', pattern: /^0\d{9}$/, length: 10, placeholder: '0XXXXXXXXX', prefix: '0' },
+        { code: 'US', name: 'United States', dialCode: '+1', flag: '🇺🇸', pattern: /^\d{10}$/, length: 10, placeholder: 'XXXXXXXXXX', prefix: '' },
+        { code: 'GB', name: 'United Kingdom', dialCode: '+44', flag: '🇬🇧', pattern: /^[1-9]\d{9,10}$/, length: 10, placeholder: '7XXXXXXXXX', prefix: '7' },
+        { code: 'CN', name: 'China', dialCode: '+86', flag: '🇨🇳', pattern: /^1[3-9]\d{9}$/, length: 11, placeholder: '1XXXXXXXXXX', prefix: '1' },
+        { code: 'JP', name: 'Japan', dialCode: '+81', flag: '🇯🇵', pattern: /^[789]0\d{8}$/, length: 11, placeholder: '90XXXXXXXXX', prefix: '9' },
+    ];
+    
+    countries.forEach(country => {
+        const option = document.createElement('option');
+        option.value = country.code;
+        option.textContent = `${country.flag} ${country.dialCode}`;
+        option.setAttribute('data-dial-code', country.dialCode);
+        option.setAttribute('data-pattern', country.pattern.source);
+        option.setAttribute('data-length', country.length);
+        option.setAttribute('data-placeholder', country.placeholder);
+        if (country.code === 'VN') {
+            option.selected = true;
+        }
+        countrySelect.appendChild(option);
+    });
+    
+    // Create number input
+    const numberInput = document.createElement('input');
+    numberInput.type = 'tel';
+    numberInput.className = 'form-input phone-number-input';
+    numberInput.setAttribute('data-phone-number', 'true');
+    numberInput.placeholder = '0XXXXXXXXX';
+    numberInput.maxLength = 10;
+    
+    // Copy name and id from original input if exists
+    if (input.name) numberInput.name = input.name;
+    if (input.id) {
+        numberInput.id = input.id;
+        input.removeAttribute('id'); // Remove ID from original to avoid duplicate
+    }
+    if (input.required) numberInput.required = input.required;
+    
+    // Insert container before original input
+    input.parentNode.insertBefore(container, input);
+    container.appendChild(countrySelect);
+    container.appendChild(numberInput);
+    
+    // Setup event listeners similar to phone.js
+    setupManualPhoneEvents(countrySelect, numberInput, input);
+    
+    console.log('Phone input wrapped manually');
+    
+    // Now set the phone value
+    setTimeout(() => {
+        if (phoneValue) {
+            setPhoneValueManually(container, phoneValue);
+            // Store initial state after phone value is set
+            const form = input.closest('form');
+            if (form) {
+                setTimeout(() => {
+                    const modalId = form.closest('.modal-overlay')?.id;
+                    if (modalId) {
+                        storeModalState(modalId, form);
+                    }
+                }, 100);
+            }
+        }
+    }, 50);
+}
+
+// Setup event listeners for manually wrapped phone input
+function setupManualPhoneEvents(countrySelect, numberInput, hiddenInput) {
+    // Country change handler
+    countrySelect.addEventListener('change', function() {
+        const selectedOption = countrySelect.options[countrySelect.selectedIndex];
+        const length = parseInt(selectedOption.getAttribute('data-length'));
+        const placeholder = selectedOption.getAttribute('data-placeholder');
+        
+        numberInput.placeholder = placeholder;
+        numberInput.maxLength = length;
+        
+        // Update hidden input
+        updateManualHiddenInput(countrySelect, numberInput, hiddenInput);
+    });
+    
+    // Number input handler
+    numberInput.addEventListener('input', function() {
+        updateManualHiddenInput(countrySelect, numberInput, hiddenInput);
+    });
+    
+    // Initial update
+    updateManualHiddenInput(countrySelect, numberInput, hiddenInput);
+}
+
+// Update hidden input for manually wrapped phone
+function updateManualHiddenInput(countrySelect, numberInput, hiddenInput) {
+    const countryCode = countrySelect.value;
+    const number = numberInput.value.replace(/\D/g, '');
+    
+    // Find dial code for selected country
+    const selectedOption = countrySelect.options[countrySelect.selectedIndex];
+    const dialCode = selectedOption.getAttribute('data-dial-code');
+    
+    if (number && dialCode) {
+        // Remove leading 0 for Vietnam if present
+        let fullNumber = number;
+        if (countryCode === 'VN' && number.startsWith('0')) {
+            fullNumber = dialCode + number.substring(1);
+        } else {
+            fullNumber = dialCode + number;
+        }
+        hiddenInput.value = fullNumber;
+    } else {
+        hiddenInput.value = '';
+    }
+}
+
+// Helper function to manually set phone value
+function setPhoneValueManually(container, phoneValue) {
+    if (!container || !phoneValue) {
+        console.warn('setPhoneValueManually: missing container or phoneValue', { container: !!container, phoneValue });
+        return;
+    }
+    
+    const countrySelect = container.querySelector('.phone-country-select');
+    const numberInput = container.querySelector('.phone-number-input');
+    
+    if (!countrySelect || !numberInput) {
+        console.warn('Phone component elements not found', {
+            countrySelect: !!countrySelect,
+            numberInput: !!numberInput
+        });
+        return;
+    }
+    
+    console.log('Setting phone manually:', phoneValue);
+    
+    // Parse phone number
+    if (phoneValue && phoneValue.startsWith('+84')) {
+        // Vietnam number: +840616511561 -> 0616511561
+        countrySelect.value = 'VN';
+        const localNumber = phoneValue.replace(/^\+84/, '');
+        console.log('Parsed Vietnam number:', localNumber);
+        numberInput.value = localNumber;
+        console.log('Set Vietnam number in input:', numberInput.value);
+        
+        // Trigger change event to update hidden input and validation
+        const changeEvent = new Event('change', { bubbles: true });
+        countrySelect.dispatchEvent(changeEvent);
+        numberInput.dispatchEvent(changeEvent);
+        
+        // Also trigger input event for real-time validation
+        const inputEvent = new Event('input', { bubbles: true });
+        numberInput.dispatchEvent(inputEvent);
+        
+        // Update hidden input if exists
+        const hiddenInput = container.previousElementSibling;
+        if (hiddenInput && hiddenInput.hasAttribute('data-phone-hidden')) {
+            hiddenInput.value = phoneValue;
+            console.log('Updated hidden input:', hiddenInput.value);
+        }
+    } else if (phoneValue && phoneValue.startsWith('+')) {
+        // Other country - try to detect dial code
+        const dialCodeMatch = phoneValue.match(/^\+(\d+)/);
+        if (dialCodeMatch) {
+            const dialCode = '+' + dialCodeMatch[1];
+            console.log('Detected dial code:', dialCode);
+            // Find country by dial code
+            const options = countrySelect.querySelectorAll('option');
+            let found = false;
+            for (let opt of options) {
+                const optDialCode = opt.getAttribute('data-dial-code');
+                if (optDialCode === dialCode) {
+                    countrySelect.value = opt.value;
+                    const localNumber = phoneValue.substring(dialCode.length);
+                    numberInput.value = localNumber;
+                    console.log('Set number for country:', opt.value, 'number:', localNumber);
+                    found = true;
+                    
+                    // Trigger change event
+                    const changeEvent = new Event('change', { bubbles: true });
+                    countrySelect.dispatchEvent(changeEvent);
+                    numberInput.dispatchEvent(changeEvent);
+                    break;
+                }
+            }
+            if (!found) {
+                console.warn('Country not found for dial code:', dialCode);
+            }
+        }
+    } else if (phoneValue) {
+        // No country code, assume Vietnam
+        countrySelect.value = 'VN';
+        numberInput.value = phoneValue;
+        console.log('Set number without country code:', phoneValue);
+        
+        // Trigger change event
+        const changeEvent = new Event('change', { bubbles: true });
+        countrySelect.dispatchEvent(changeEvent);
+        numberInput.dispatchEvent(changeEvent);
+        
+        // Update hidden input if exists
+        const hiddenInput = container.previousElementSibling;
+        if (hiddenInput && hiddenInput.hasAttribute('data-phone-hidden')) {
+            // Construct full phone number with country code
+            const fullNumber = '+84' + phoneValue.replace(/^0/, '');
+            hiddenInput.value = fullNumber;
+            console.log('Updated hidden input:', hiddenInput.value);
+        }
     }
 }
 
 function closeEditAreaModal() {
-    closeModalWithConfirmation('editAreaModal');
+    const modal = document.getElementById('editAreaModal');
+    if (!modal) return;
+    
+    const form = document.getElementById('editAreaForm');
+    if (!form) {
+        modal.style.display = 'none';
+        clearModalState('editAreaModal');
+        return;
+    }
+    
+    // Get current form data including phone value
+    const formData = new FormData(form);
+    const currentData = Object.fromEntries(formData);
+    
+    // Get phone value from phone component
+    const phoneEl = form.querySelector('input[data-phone][name="phone"]');
+    if (phoneEl && window.getPhoneValue) {
+        currentData.phone = window.getPhoneValue(phoneEl) || '';
+    }
+    
+    // Get original data
+    const originalData = modalStates.get('editAreaModal');
+    
+    // Compare data
+    let hasChanges = false;
+    if (!originalData) {
+        // If no original data, check if form has any data
+        hasChanges = Object.values(currentData).some(val => val && val.toString().trim() !== '');
+    } else {
+        // Compare current with original
+        const keys = new Set([...Object.keys(currentData), ...Object.keys(originalData)]);
+        for (const key of keys) {
+            const currentVal = (currentData[key] || '').toString().trim();
+            const originalVal = (originalData[key] || '').toString().trim();
+            if (currentVal !== originalVal) {
+                hasChanges = true;
+                break;
+            }
+        }
+    }
+    
+    // Only ask for confirmation if there are changes
+    if (hasChanges) {
+        closeModalWithConfirmation('editAreaModal');
+    } else {
+        modal.style.display = 'none';
+        clearModalState('editAreaModal');
+    }
 }
 
 async function updateArea() {
@@ -750,6 +1296,8 @@ async function updateArea() {
     const data = Object.fromEntries(formData);
     const id = data.id;
     delete data.id;
+    const phoneEl = form.querySelector('input[data-phone][name="phone"]');
+    if (phoneEl) data.phone = window.getPhoneValue(phoneEl) || '';
     
     try {
         const response = await fetch(`{{ BACKEND_URL }}/api/areas/${id}`, {
@@ -764,7 +1312,7 @@ async function updateArea() {
         if (response.ok) {
             document.getElementById('editAreaModal').style.display = 'none';
             clearModalState('editAreaModal');
-            loadAreaData();
+            loadAreasData();
             showSuccessMessage('Cập nhật thành công!');
         } else {
             const error = await response.json();
@@ -855,6 +1403,103 @@ function showSuccessMessage(message) {
 
 function showErrorMessage(message) {
     showErrorModal('Lỗi', message);
+}
+
+// Populate area dropdown for selection
+function populateAreaDropdown() {
+    const select = document.getElementById('selectExistingArea');
+    if (!select) return;
+    
+    // Clear existing options except first
+    select.innerHTML = '<option value="">-- Chọn khu vực --</option>';
+    
+    // Add areas to dropdown
+    areasData.forEach(area => {
+        const option = document.createElement('option');
+        option.value = area.id;
+        option.textContent = `${area.code || ''} - ${area.name || ''}`;
+        option.dataset.area = JSON.stringify({
+            id: area.id,
+            name: area.name,
+            code: area.code,
+            province: area.province,
+            address: area.address,
+            phone: area.phone,
+            manager: area.manager,
+            priority: area.priority,
+            type: area.type,
+            description: area.description
+        });
+        select.appendChild(option);
+    });
+}
+
+// Toggle area dropdown visibility
+function toggleAreaDropdown() {
+    const select = document.getElementById('selectExistingArea');
+    const icon = document.getElementById('areaDropdownIcon');
+    
+    if (select && icon) {
+        const isVisible = select.style.display !== 'none';
+        select.style.display = isVisible ? 'none' : 'block';
+        icon.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+}
+
+// Fill form fields when area is selected
+function fillAreaFromSelection(areaId) {
+    if (!areaId) {
+        // Clear form if no selection
+        document.getElementById('name_input').value = '';
+        document.getElementById('code_input').value = '';
+        document.getElementById('province_input').value = '';
+        document.getElementById('address_input').value = '';
+        const phoneInput = document.getElementById('phone_input');
+        if (phoneInput) {
+            const phoneContainer = phoneInput.closest('.phone-input-container');
+            if (phoneContainer) {
+                const select = phoneContainer.querySelector('.phone-country-select');
+                if (select) select.value = '+84';
+            }
+        }
+        document.querySelector('select[name="type"]').value = '';
+        document.querySelector('input[name="manager"]').value = '';
+        document.querySelector('select[name="priority"]').value = 'medium';
+        document.querySelector('textarea[name="description"]').value = '';
+        return;
+    }
+    
+    const select = document.getElementById('selectExistingArea');
+    const selectedOption = select.querySelector(`option[value="${areaId}"]`);
+    
+    if (selectedOption && selectedOption.dataset.area) {
+        try {
+            const area = JSON.parse(selectedOption.dataset.area);
+            
+            // Fill form fields
+            document.getElementById('name_input').value = area.name || '';
+            document.getElementById('code_input').value = area.code || '';
+            document.getElementById('province_input').value = area.province || '';
+            document.getElementById('address_input').value = area.address || '';
+            document.querySelector('select[name="type"]').value = area.type || '';
+            document.querySelector('input[name="manager"]').value = area.manager || '';
+            document.querySelector('select[name="priority"]').value = area.priority || 'medium';
+            document.querySelector('textarea[name="description"]').value = area.description || '';
+            
+            // Set phone value using phone component
+            const phoneInput = document.getElementById('phone_input');
+            if (phoneInput && area.phone) {
+                if (window.setPhoneValue) {
+                    window.setPhoneValue(phoneInput, area.phone);
+                } else {
+                    phoneInput.value = area.phone;
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error parsing area data:', error);
+        }
+    }
 }
 </script>
 {% endblock %}

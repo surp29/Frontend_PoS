@@ -125,11 +125,21 @@ Hệ thống bán hàng - Point of Sale
         <div class="modal-body">
             <!-- Customer Info Section -->
             <div class="customer-info-section" style="margin-bottom: var(--spacing-6); padding-bottom: var(--spacing-4); border-bottom: 2px solid var(--gray-200);">
-                <h4 style="margin-bottom: var(--spacing-3); color: var(--gray-700); display: flex; align-items: center; gap: var(--spacing-2);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-3);">
+                    <h4 style="margin: 0; color: var(--gray-700); display: flex; align-items: center; gap: var(--spacing-2);">
                     <i class="fas fa-user-circle" style="color: var(--primary-color);"></i>
                     Thông tin khách hàng
                 </h4>
-                <div class="customer-info-details">
+                    <button type="button" id="editCustomerBtn" class="btn btn-sm btn-outline" onclick="toggleEditCustomer()" style="display: none;">
+                        <i class="fas fa-edit"></i> Chỉnh sửa
+                    </button>
+                    <button type="button" id="saveCustomerBtn" class="btn btn-sm btn-primary" onclick="saveCustomerInfo()" style="display: none;">
+                        <i class="fas fa-save"></i> Lưu
+                    </button>
+                </div>
+                
+                <!-- View Mode -->
+                <div id="customerInfoView" class="customer-info-details">
                     <div class="customer-info-row">
                         <span class="info-label"><i class="fas fa-user"></i> Tên khách hàng:</span>
                         <span id="customerInfoName" class="info-value">-</span>
@@ -141,6 +151,25 @@ Hệ thống bán hàng - Point of Sale
                     <div class="customer-info-row">
                         <span class="info-label"><i class="fas fa-envelope"></i> Email:</span>
                         <span id="customerInfoEmail" class="info-value">-</span>
+                    </div>
+                </div>
+                
+                <!-- Edit Mode -->
+                <div id="customerInfoEdit" class="customer-info-edit" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Tên khách hàng *</label>
+                        <input type="text" id="editCustomerName" class="form-input" placeholder="Nhập tên khách hàng" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="tel" id="editCustomerPhone" class="form-input" data-phone placeholder="Nhập số điện thoại">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="editCustomerEmail" class="form-input" placeholder="Nhập email">
+                    </div>
+                    <div style="background: #dbeafe; padding: var(--spacing-2); border-radius: var(--radius-md); font-size: var(--font-size-sm); color: #2563eb; margin-top: var(--spacing-2);">
+                        <i class="fas fa-info-circle"></i> Thông tin sẽ được lưu vào hệ thống khi xác nhận thanh toán
                     </div>
                 </div>
             </div>
@@ -164,10 +193,23 @@ Hệ thống bán hàng - Point of Sale
                     <span id="paymentTotal" style="font-size: 1.3em; font-weight: 700; color: var(--primary-color);">0 VNĐ</span>
                 </div>
                 <div class="payment-row">
+                    <span>Hình thức thanh toán *</span>
+                    <select class="form-select" id="paymentMethod" required onchange="handlePaymentMethodChange()" style="min-width: 200px;">
+                        <option value="">Chọn hình thức thanh toán</option>
+                        <option value="Tiền mặt">Tiền mặt</option>
+                        <option value="MoMo">MoMo</option>
+                        <option value="Banking">Banking</option>
+                    </select>
+                </div>
+                <!-- Cash payment section -->
+                <div id="cashPaymentSection" style="display: none;">
+                <div class="payment-row">
                     <span>Khách đưa:</span>
                     <div class="money-input-container">
                         <input type="text" id="amountReceived" class="form-input large-input" placeholder="0" 
                                oninput="formatMoneyInput(this)" 
+                                   onfocus="clearZeroOnFocus(this)"
+                                   onblur="restoreZeroIfEmpty(this)"
                                onkeypress="return isNumberKey(event)">
                         <span class="currency-unit">VNĐ</span>
                     </div>
@@ -175,12 +217,64 @@ Hệ thống bán hàng - Point of Sale
                 <div class="payment-row">
                     <span>Tiền thừa:</span>
                     <span id="changeAmount" class="change-amount" style="font-size: 1.2em;">0 VNĐ</span>
+                    </div>
+                </div>
+                <!-- QR code section for MoMo and Banking -->
+                <div id="qrPaymentSection" style="display: none;">
+                    <div class="payment-row" style="flex-direction: column; align-items: center; gap: var(--spacing-3); padding: var(--spacing-4) 0;">
+                        <div id="qrCodeContainer" style="background: white; padding: var(--spacing-4); border-radius: var(--radius-md); border: 2px solid var(--gray-300); display: flex; flex-direction: column; align-items: center;">
+                            <!-- QR code will be generated here -->
+                            <div id="qrCodePlaceholder" style="width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; background: var(--gray-100); border-radius: var(--radius);">
+                                <i class="fas fa-qrcode" style="font-size: 4em; color: var(--gray-400);"></i>
+                            </div>
+                        </div>
+                        <div style="text-align: center; color: var(--gray-600); font-size: var(--font-size-sm);">
+                            <p style="margin: 0; font-weight: 600;" id="qrPaymentInstruction">Quét mã QR để thanh toán</p>
+                            <p style="margin: var(--spacing-1) 0 0 0;" id="qrPaymentAmount">Số tiền: <strong>0 VNĐ</strong></p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closePaymentModal()">Hủy</button>
             <button type="button" class="btn btn-primary" onclick="confirmPayment()">Xác nhận</button>
+        </div>
+    </div>
+</div>
+
+<!-- Change Confirmation Modal -->
+<div class="modal-overlay" id="changeConfirmationModal" style="display: none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3><i class="fas fa-money-check-alt"></i> Xác nhận tiền thừa</h3>
+            <button class="modal-close" onclick="closeChangeConfirmationModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div style="padding: var(--spacing-4);">
+                <div style="background: var(--gray-50); padding: var(--spacing-4); border-radius: var(--radius-md);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-3); padding: var(--spacing-2) 0; border-bottom: 1px solid var(--gray-200);">
+                        <span style="font-weight: 600; color: var(--gray-700); font-size: 1.1em;">Tiền khách đưa:</span>
+                        <span id="changeConfirmReceived" style="font-weight: 700; color: var(--primary-color); font-size: 1.2em;">0 VNĐ</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-3); padding: var(--spacing-2) 0; border-bottom: 1px solid var(--gray-200);">
+                        <span style="font-weight: 600; color: var(--gray-700); font-size: 1.1em;">Tổng tiền:</span>
+                        <span id="changeConfirmTotal" style="font-weight: 700; color: var(--gray-900); font-size: 1.2em;">0 VNĐ</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-2) 0;">
+                        <span style="font-weight: 700; color: var(--success-color); font-size: 1.2em;">Tiền thối:</span>
+                        <span id="changeConfirmAmount" style="font-weight: 700; color: var(--success-color); font-size: 1.5em;">0 VNĐ</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeChangeConfirmationModal()">Hủy</button>
+            <button type="button" class="btn btn-primary" onclick="proceedWithPayment()">
+                <i class="fas fa-check"></i> Xác nhận và thanh toán
+            </button>
         </div>
     </div>
 </div>
@@ -502,9 +596,9 @@ Hệ thống bán hàng - Point of Sale
     font-size: var(--font-size-sm);
 }
 
-/* Modal large for payment */
+/* Modal large for payment - smaller size */
 .modal-large {
-    max-width: 600px;
+    max-width: 500px;
     width: 90%;
 }
 
@@ -592,11 +686,42 @@ Hệ thống bán hàng - Point of Sale
     font-weight: 500;
 }
 
-.payment-row.total-payment {
-    border-top: 2px solid var(--primary-color);
-    padding-top: var(--spacing-3);
-    margin-top: var(--spacing-2);
-    font-size: 1.1em;
+.customer-info-edit {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+}
+
+.customer-info-edit .form-group {
+    margin-bottom: 0;
+    position: relative; /* Để error message có thể position relative */
+}
+
+/* Đảm bảo form-group chứa phone input có đủ không gian cho error */
+.customer-info-edit .form-group:has(.phone-input-container.has-error) {
+    margin-bottom: 0.5rem; /* Tạo khoảng cách với field tiếp theo khi có error */
+}
+
+.customer-info-edit .form-label {
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: var(--spacing-1);
+    display: block;
+}
+
+.customer-info-edit .form-input {
+    width: 100%;
+    padding: var(--spacing-2) var(--spacing-3);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    transition: border-color var(--transition-fast);
+}
+
+.customer-info-edit .form-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 /* Price list table in POS */
@@ -775,6 +900,59 @@ function formatCurrency(amount) {
     }).format(amount);
 }
 
+// Format money input with comma separator (đồng bộ với các input số tiền khác)
+function formatMoneyInput(input) {
+    const raw = (input.value || '').replace(/[^0-9]/g, '');
+    if (!raw) {
+        input.value = '';
+        updateChangeAmount();
+        return;
+    }
+    input.value = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    updateChangeAmount();
+}
+
+// Update change amount when amount received changes
+function updateChangeAmount() {
+    const receivedInput = document.getElementById('amountReceived');
+    const received = receivedInput ? parseInt((receivedInput.value || '').replace(/,/g, '')) || 0 : 0;
+    
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const totalDiscount = selectedDiscounts.reduce((sum, discount) => sum + discount.amount, 0);
+    const total = Math.max(0, subtotal - totalDiscount);
+    
+    const change = Math.max(0, received - total);
+    const changeElement = document.getElementById('changeAmount');
+    if (changeElement) {
+        changeElement.textContent = formatCurrency(change);
+    }
+}
+
+// Clear zero on focus
+function clearZeroOnFocus(input) {
+    if (input.value === '0' || input.value === '0,000') {
+        input.value = '';
+    }
+}
+
+// Restore zero if empty on blur
+function restoreZeroIfEmpty(input) {
+    if (!input.value || input.value.trim() === '') {
+        input.value = '0';
+        formatMoneyInput(input);
+    }
+}
+
+// Check if key is number
+function isNumberKey(event) {
+    const char = String.fromCharCode(event.which);
+    if (!/[0-9]/.test(char)) {
+        event.preventDefault();
+        return false;
+    }
+    return true;
+}
+
 // Global variables
 let productsData = [];
 let cart = [];
@@ -791,6 +969,9 @@ document.addEventListener('DOMContentLoaded', function() {
     loadDiscountCodes();
     // Setup dropdown events after a short delay to ensure elements are loaded
     setTimeout(setupCustomerDropdownEvents, 500);
+    
+    // Initialize phone inputs when modal is opened
+    // Phone inputs will be initialized when modal opens, not on page load
 });
 
 // Load products
@@ -864,7 +1045,6 @@ function populateCustomerList(searchTerm = '') {
     walkInDiv.innerHTML = '<strong>Khách vãng lai</strong>';
     walkInDiv.onclick = function() {
         selectCustomer('Khách vãng lai');
-        toggleDropdown();
     };
     dropdownList.appendChild(walkInDiv);
     
@@ -877,7 +1057,6 @@ function populateCustomerList(searchTerm = '') {
         customCustomerDiv.innerHTML = `<strong>Thêm khách hàng: "${searchTerm}"</strong><small>Nhấn Enter để sử dụng</small>`;
         customCustomerDiv.onclick = function() {
             selectCustomer(searchTerm);
-            toggleDropdown();
         };
         dropdownList.appendChild(customCustomerDiv);
         
@@ -905,7 +1084,6 @@ function populateCustomerList(searchTerm = '') {
             item.innerHTML = displayText;
             item.onclick = function() {
                 selectCustomer(name);
-                toggleDropdown();
             };
             
             dropdownList.appendChild(item);
@@ -936,11 +1114,9 @@ function handleCustomerKeypress(event) {
         if (searchTerm) {
             // If user typed something, use that as customer name
             selectCustomer(searchTerm);
-            toggleDropdown();
         } else {
             // If empty, select "Khách vãng lai"
             selectCustomer('Khách vãng lai');
-            toggleDropdown();
         }
     }
 }
@@ -959,6 +1135,12 @@ function selectCustomer(customerName) {
     
     if (customerInput) {
         customerInput.value = customerName;
+    }
+    
+    // Close dropdown
+    const dropdown = document.getElementById('customerDropdownList');
+    if (dropdown) {
+        dropdown.style.display = 'none';
     }
     
     // Repopulate dropdown to show all customers again
@@ -1440,16 +1622,57 @@ function processPayment() {
     const customerName = document.getElementById('customerName').value || 'Khách vãng lai';
     const selectedCustomer = customersData.find(c => c.ten_tk === customerName);
     
+    // Store customer info for later use
+    window.currentCustomerName = customerName;
+    window.currentCustomerData = selectedCustomer;
+    window.isWalkInCustomer = !selectedCustomer || customerName === 'Khách vãng lai';
+    
     // Display customer info in modal
     document.getElementById('customerInfoName').textContent = customerName;
     
     if (selectedCustomer) {
         document.getElementById('customerInfoPhone').textContent = selectedCustomer.so_dt || '-';
         document.getElementById('customerInfoEmail').textContent = selectedCustomer.email || '-';
+        // Hide edit button for existing customers
+        document.getElementById('editCustomerBtn').style.display = 'none';
     } else {
         document.getElementById('customerInfoPhone').textContent = '-';
         document.getElementById('customerInfoEmail').textContent = '-';
+        // Show edit button for walk-in customers
+        document.getElementById('editCustomerBtn').style.display = 'block';
     }
+    
+    // Reset edit mode
+    document.getElementById('customerInfoView').style.display = 'block';
+    document.getElementById('customerInfoEdit').style.display = 'none';
+    document.getElementById('editCustomerBtn').style.display = window.isWalkInCustomer ? 'block' : 'none';
+    document.getElementById('saveCustomerBtn').style.display = 'none';
+    
+    // Clear edit fields
+    document.getElementById('editCustomerName').value = customerName === 'Khách vãng lai' ? '' : customerName;
+    // Reset phone component - initialize if needed
+    setTimeout(() => {
+        const phoneInput = document.getElementById('editCustomerPhone');
+        if (phoneInput) {
+            // Initialize phone component if not already wrapped
+            if (!phoneInput.closest('.phone-input-container') && window.initializePhoneInputs) {
+                window.initializePhoneInputs();
+            }
+            // Reset phone value
+            if (window.setPhoneValue) {
+                window.setPhoneValue(phoneInput, '');
+            } else {
+                const container = phoneInput.closest('.phone-input-container');
+                if (container) {
+                    const numberInput = container.querySelector('.phone-number-input');
+                    if (numberInput) numberInput.value = '';
+                } else {
+                    phoneInput.value = '';
+                }
+            }
+        }
+    }, 50);
+    document.getElementById('editCustomerEmail').value = '';
     
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const totalDiscount = selectedDiscounts.reduce((sum, discount) => sum + discount.amount, 0);
@@ -1470,40 +1693,457 @@ function processPayment() {
         discountCodesContainer.innerHTML = '<span style="color: var(--gray-500);">Không có mã giảm giá</span>';
     }
     
+    // Reset payment method
+    document.getElementById('paymentMethod').value = '';
+    document.getElementById('cashPaymentSection').style.display = 'none';
+    document.getElementById('qrPaymentSection').style.display = 'none';
+    
     document.getElementById('amountReceived').value = '';
     document.getElementById('changeAmount').textContent = '0 VNĐ';
     
+    // Initialize change amount calculation
+    updateChangeAmount();
+    
     document.getElementById('paymentModal').style.display = 'flex';
+}
+
+// Toggle edit customer mode
+function toggleEditCustomer() {
+    const viewMode = document.getElementById('customerInfoView');
+    const editMode = document.getElementById('customerInfoEdit');
+    const editBtn = document.getElementById('editCustomerBtn');
+    const saveBtn = document.getElementById('saveCustomerBtn');
+    
+    if (viewMode.style.display !== 'none') {
+        // Switch to edit mode
+        viewMode.style.display = 'none';
+        editMode.style.display = 'block';
+        editBtn.style.display = 'none';
+        saveBtn.style.display = 'block';
+        
+        // Pre-fill with current values
+        const currentName = document.getElementById('customerInfoName').textContent;
+        const currentPhone = document.getElementById('customerInfoPhone').textContent;
+        const currentEmail = document.getElementById('customerInfoEmail').textContent;
+        
+        document.getElementById('editCustomerName').value = currentName === '-' ? '' : currentName;
+        document.getElementById('editCustomerEmail').value = currentEmail === '-' ? '' : currentEmail;
+        
+        // Initialize phone input component if needed - ensure only one initialization
+        setTimeout(() => {
+            const phoneInput = document.getElementById('editCustomerPhone');
+            if (phoneInput) {
+                // Remove any duplicate containers first
+                const formGroup = phoneInput.closest('.form-group');
+                if (formGroup) {
+                    const containers = formGroup.querySelectorAll('.phone-input-container');
+                    if (containers.length > 1) {
+                        // Keep only the first one, remove the rest
+                        for (let i = 1; i < containers.length; i++) {
+                            containers[i].remove();
+                        }
+                    }
+                }
+                
+                // Check if already wrapped
+                if (!phoneInput.closest('.phone-input-container')) {
+                    // Try to initialize phone component
+                    if (window.initializePhoneInputs) {
+                        window.initializePhoneInputs();
+                    }
+                }
+                
+                // Set phone value using phone component
+                if (currentPhone !== '-') {
+                    if (window.setPhoneValue) {
+                        window.setPhoneValue(phoneInput, currentPhone);
+                    } else {
+                        // Try to set value on the visible number input
+                        const container = phoneInput.closest('.phone-input-container');
+                        if (container) {
+                            const numberInput = container.querySelector('.phone-number-input');
+                            if (numberInput) {
+                                numberInput.value = currentPhone.replace(/^\+\d+/, '');
+                            }
+                        } else {
+                            phoneInput.value = currentPhone;
+                        }
+                    }
+                }
+            }
+        }, 100);
+    } else {
+        // Switch back to view mode
+        viewMode.style.display = 'block';
+        editMode.style.display = 'none';
+        editBtn.style.display = 'block';
+        saveBtn.style.display = 'none';
+    }
+}
+
+// Save customer info (doesn't save to DB yet, just stores for payment)
+function saveCustomerInfo() {
+    const name = document.getElementById('editCustomerName').value.trim();
+    const phoneEl = document.getElementById('editCustomerPhone');
+    const phone = phoneEl ? (window.getPhoneValue ? window.getPhoneValue(phoneEl) : phoneEl.value) : '';
+    const email = document.getElementById('editCustomerEmail').value.trim();
+    
+    if (!name) {
+        showErrorModal('Lỗi', 'Vui lòng nhập tên khách hàng');
+        return;
+    }
+    
+    // Update view mode
+    document.getElementById('customerInfoName').textContent = name;
+    document.getElementById('customerInfoPhone').textContent = phone || '-';
+    document.getElementById('customerInfoEmail').textContent = email || '-';
+    
+    // Store edited customer info
+    window.editedCustomerInfo = {
+        ten_tk: name,
+        so_dt: phone || null,
+        email: email || null
+    };
+    
+    // Switch back to view mode
+    toggleEditCustomer();
 }
 
 // Close payment modal
 function closePaymentModal() {
     document.getElementById('paymentModal').style.display = 'none';
+    // Reset edit mode
+    document.getElementById('customerInfoView').style.display = 'block';
+    document.getElementById('customerInfoEdit').style.display = 'none';
+    document.getElementById('editCustomerBtn').style.display = 'none';
+    document.getElementById('saveCustomerBtn').style.display = 'none';
+    // Reset payment method
+    document.getElementById('paymentMethod').value = '';
+    document.getElementById('cashPaymentSection').style.display = 'none';
+    document.getElementById('qrPaymentSection').style.display = 'none';
+    window.editedCustomerInfo = null;
 }
 
-// Confirm payment
-async function confirmPayment() {
+// Global variable to store payment data for confirmation
+let pendingPaymentData = null;
+
+// Handle payment method change
+function handlePaymentMethodChange() {
+    const paymentMethod = document.getElementById('paymentMethod').value;
+    const cashSection = document.getElementById('cashPaymentSection');
+    const qrSection = document.getElementById('qrPaymentSection');
+    
+    if (paymentMethod === 'Tiền mặt') {
+        cashSection.style.display = 'block';
+        qrSection.style.display = 'none';
+    } else if (paymentMethod === 'MoMo' || paymentMethod === 'Banking') {
+        cashSection.style.display = 'none';
+        qrSection.style.display = 'block';
+        generateQRCode(paymentMethod);
+    } else {
+        cashSection.style.display = 'none';
+        qrSection.style.display = 'none';
+    }
+}
+
+// Generate QR code for payment
+function generateQRCode(paymentMethod) {
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const totalDiscount = selectedDiscounts.reduce((sum, discount) => sum + discount.amount, 0);
+    const total = Math.max(0, subtotal - totalDiscount);
+    
+    // Update QR payment amount display
+    const qrPaymentAmount = document.getElementById('qrPaymentAmount');
+    if (qrPaymentAmount) {
+        qrPaymentAmount.innerHTML = `Số tiền: <strong>${total.toLocaleString()} VNĐ</strong>`;
+    }
+    
+    // Update QR payment instruction text based on payment method
+    const qrPaymentInstruction = document.getElementById('qrPaymentInstruction');
+    if (qrPaymentInstruction) {
+        if (paymentMethod === 'MoMo') {
+            qrPaymentInstruction.textContent = 'Quét mã QR bằng ứng dụng MoMo để thanh toán';
+        } else if (paymentMethod === 'Banking') {
+            qrPaymentInstruction.textContent = 'Quét mã QR bằng ứng dụng ngân hàng để thanh toán';
+        } else {
+            qrPaymentInstruction.textContent = 'Quét mã QR để thanh toán';
+        }
+    }
+    
+    // Generate QR code data
+    const qrData = {
+        method: paymentMethod,
+        amount: total,
+        invoice: `HĐ-${new Date().toISOString().split('T')[0].replace(/-/g, '')}-${Date.now().toString().slice(-3)}`,
+        timestamp: new Date().toISOString()
+    };
+    
+    // Create QR code string (simplified - in production, use a QR code library)
+    const qrString = JSON.stringify(qrData);
+    
+    // For now, we'll use a placeholder QR code
+    // In production, you would use a library like qrcode.js or qrcode-generator
+    const qrContainer = document.getElementById('qrCodeContainer');
+    const placeholder = document.getElementById('qrCodePlaceholder');
+    
+    if (qrContainer) {
+        // Clear all existing content in QR container (including old instruction text)
+        qrContainer.innerHTML = '';
+        
+        // Remove placeholder if it exists
+        if (placeholder && placeholder.parentNode) {
+            placeholder.remove();
+        }
+        
+        // Create canvas for QR code (simplified version)
+        // In production, use: https://github.com/davidshimjs/qrcodejs
+        const canvas = document.createElement('canvas');
+        canvas.id = 'qrCodeCanvas';
+        canvas.width = 200;
+        canvas.height = 200;
+        canvas.style.width = '200px';
+        canvas.style.height = '200px';
+        
+        // Simple placeholder QR pattern (in production, use actual QR library)
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, 200, 200);
+        ctx.fillStyle = '#000000';
+        
+        // Draw simple pattern (placeholder)
+        for (let i = 0; i < 20; i++) {
+            for (let j = 0; j < 20; j++) {
+                if ((i + j) % 3 === 0 || (i * j) % 7 === 0) {
+                    ctx.fillRect(i * 10, j * 10, 8, 8);
+                }
+            }
+        }
+        
+        // Add payment method text on canvas (optional, can be removed if not needed)
+        ctx.fillStyle = '#000000';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(paymentMethod, 100, 190);
+        
+        qrContainer.appendChild(canvas);
+        
+        // Add instruction text BELOW the QR code (outside canvas)
+        const instruction = document.createElement('div');
+        instruction.id = 'qrInstructionText';
+        instruction.style.cssText = 'margin-top: var(--spacing-2); text-align: center; font-size: var(--font-size-xs); color: var(--gray-600);';
+        if (paymentMethod === 'MoMo') {
+            instruction.textContent = 'Quét mã bằng ứng dụng MoMo';
+        } else if (paymentMethod === 'Banking') {
+            instruction.textContent = 'Quét mã bằng ứng dụng ngân hàng';
+        } else {
+            instruction.textContent = 'Quét mã để thanh toán';
+        }
+        qrContainer.appendChild(instruction);
+    }
+}
+
+// Confirm payment - check if change is needed
+function confirmPayment() {
+    const paymentMethod = document.getElementById('paymentMethod').value;
+    
+    if (!paymentMethod) {
+        showErrorModal('Lỗi', 'Vui lòng chọn hình thức thanh toán');
+        return;
+    }
+    
+    // For cash payment, check amount received
+    if (paymentMethod === 'Tiền mặt') {
     const received = parseInt(document.getElementById('amountReceived').value.replace(/,/g, '')) || 0;
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const totalDiscount = selectedDiscounts.reduce((sum, discount) => sum + discount.amount, 0);
     const total = Math.max(0, subtotal - totalDiscount);
     
+        // Kiểm tra nếu tiền không đủ
     if (received < total) {
         showErrorModal('Lỗi', 'Số tiền nhận không đủ');
         return;
     }
+        
+        // Nếu tiền thừa (received > total), hiện popup xác nhận
+        if (received > total) {
+            const change = received - total;
+            showChangeConfirmationModal(received, total, change);
+            return;
+        }
+    }
+    
+    // For QR payment or exact cash payment, proceed directly
+    proceedWithPayment();
+}
+
+// Show change confirmation modal
+function showChangeConfirmationModal(received, total, change) {
+    document.getElementById('changeConfirmReceived').textContent = formatCurrency(received);
+    document.getElementById('changeConfirmTotal').textContent = formatCurrency(total);
+    document.getElementById('changeConfirmAmount').textContent = formatCurrency(change);
+    document.getElementById('changeConfirmationModal').style.display = 'flex';
+}
+
+// Close change confirmation modal
+function closeChangeConfirmationModal() {
+    document.getElementById('changeConfirmationModal').style.display = 'none';
+}
+
+// Proceed with payment after confirming change
+async function proceedWithPayment() {
+    // Close change confirmation modal if open
+    document.getElementById('changeConfirmationModal').style.display = 'none';
+    
+    const received = parseInt(document.getElementById('amountReceived').value.replace(/,/g, '')) || 0;
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const totalDiscount = selectedDiscounts.reduce((sum, discount) => sum + discount.amount, 0);
+    const total = Math.max(0, subtotal - totalDiscount);
     
     try {
-        const customerName = document.getElementById('customerName').value || 'Khách vãng lai';
+        let customerName = window.currentCustomerName || document.getElementById('customerName').value || 'Khách vãng lai';
+        let customerId = null;
+        
+        // If customer info was edited (khách vãng lai nhập thông tin), create new customer account
+        if (window.editedCustomerInfo && window.editedCustomerInfo.ten_tk) {
+            try {
+                // Check if customer already exists by name or phone/email
+                await loadCustomers();
+                let existingCustomer = null;
+                
+                // Try to find existing customer by name
+                if (window.editedCustomerInfo.ten_tk && window.editedCustomerInfo.ten_tk !== 'Khách vãng lai') {
+                    existingCustomer = customersData.find(c => 
+                        c.ten_tk === window.editedCustomerInfo.ten_tk
+                    );
+                }
+                
+                // If not found by name, try by phone or email
+                if (!existingCustomer) {
+                    if (window.editedCustomerInfo.so_dt) {
+                        existingCustomer = customersData.find(c => 
+                            c.so_dt === window.editedCustomerInfo.so_dt
+                        );
+                    }
+                    if (!existingCustomer && window.editedCustomerInfo.email) {
+                        existingCustomer = customersData.find(c => 
+                            c.email === window.editedCustomerInfo.email
+                        );
+                    }
+                }
+                
+                if (existingCustomer) {
+                    // Customer already exists, use existing customer
+                    customerId = existingCustomer.id;
+                    customerName = existingCustomer.ten_tk;
+                    console.log('Using existing customer:', customerName);
+                } else {
+                    // Create new customer account with all available information
+                    // Missing fields will be saved as null/empty for later updates
+                    const customerData = {
+                        ten_tk: window.editedCustomerInfo.ten_tk,
+                        so_dt: window.editedCustomerInfo.so_dt || null,
+                        email: window.editedCustomerInfo.email || null,
+                        ma_khach_hang: null, // Có thể để trống để cập nhật sau
+                        ngay_sinh: null, // Có thể để trống để cập nhật sau
+                        dia_chi: null, // Có thể để trống để cập nhật sau
+                        trang_thai: true // Mặc định là hoạt động
+                    };
+                    
+                    const createCustomerResponse = await fetch('{{ BACKEND_URL }}/api/accounts/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+                        },
+                        body: JSON.stringify(customerData)
+                    });
+                    
+                    if (createCustomerResponse.ok) {
+                        const newCustomer = await createCustomerResponse.json();
+                        // Handle different response formats
+                        if (newCustomer.id) {
+                            customerId = newCustomer.id;
+                        } else if (newCustomer.success && newCustomer.id) {
+                            customerId = newCustomer.id;
+                        }
+                        customerName = window.editedCustomerInfo.ten_tk;
+                        
+                        // Refresh customers list
+                        await loadCustomers();
+                        
+                        // Update customer name in input
+                        document.getElementById('customerName').value = customerName;
+                        
+                        console.log('Created new customer account:', customerName, 'ID:', customerId);
+                        // Không hiển thị modal thành công để không làm gián đoạn quá trình thanh toán
+                    } else {
+                        const errorText = await createCustomerResponse.text();
+                        let error = null;
+                        try {
+                            error = JSON.parse(errorText);
+                        } catch (e) {
+                            error = { detail: errorText };
+                        }
+                        console.warn('Could not create customer, continuing with payment:', error);
+                        // Continue with payment even if customer creation fails
+                    }
+                }
+            } catch (error) {
+                console.error('Error creating customer:', error);
+                // Continue with payment even if customer creation fails
+            }
+        } else if (window.currentCustomerData) {
+            // Use existing customer
+            customerId = window.currentCustomerData.id;
+        }
 
-        // ONLY fetch, hiển thị UI payment modal, submit cho backend API. Không phép tính business, chỉ nhận json trả ra và render.
+        // Get next invoice number from API
+        let invoiceNumber = '';
+        try {
+            const nextNumberResponse = await fetch('{{ BACKEND_URL }}/api/invoices/next-number', {
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+                }
+            });
+            if (nextNumberResponse.ok) {
+                const nextNumberData = await nextNumberResponse.json();
+                invoiceNumber = nextNumberData.full_invoice_number || `HĐ-${nextNumberData.date_str}-${String(nextNumberData.next_number).padStart(3, '0')}`;
+            } else {
+                throw new Error('Failed to get invoice number');
+            }
+        } catch (error) {
+            console.warn('Could not get next invoice number, generating manually:', error);
+            // Fallback: generate manually using date format
+            const today = new Date();
+            const dd = String(today.getDate()).padStart(2, '0');
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const yy = String(today.getFullYear()).slice(-2);
+            const dateStr = dd + mm + yy;
+            invoiceNumber = `HĐ-${dateStr}-001`; // Fallback to 001 if API fails
+        }
+
+        // Get payment method
+        const paymentMethod = document.getElementById('paymentMethod').value || 'Tiền mặt';
+
+        // Create payment payload with items
         const paymentPayload = {
-            customer_name: customerName,
-            total: total,
-            discount_codes: selectedDiscounts.map(d => d.code) // Assuming discount_codes is an array of code strings
+            so_hd: invoiceNumber,
+            ngay_hd: new Date().toISOString().split('T')[0], // Format: YYYY-MM-DD
+            nguoi_mua: customerName,
+            tong_tien: total,
+            trang_thai: 'Đã thanh toán',
+            hinh_thuc_tt: paymentMethod, // Add payment method
+            items: cart.map(item => ({
+                product_id: item.id,
+                product_code: item.code || '',
+                product_name: item.name || '',
+                so_luong: item.quantity,
+                don_gia: item.price,
+                total_price: item.price * item.quantity
+            }))
         };
 
-        const response = await fetch('{{ BACKEND_URL }}/api/invoices/create/', {
+        const response = await fetch('{{ BACKEND_URL }}/api/invoices/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1515,21 +2155,27 @@ async function confirmPayment() {
         if (response.ok) {
             const result = await response.json();
             console.log('Payment successful:', result);
-            showSuccessModal('Thanh toán thành công', 'Hóa đơn đã được phát hành.');
+            showSuccessModal('Thanh toán thành công', `Hóa đơn ${invoiceNumber} đã được phát hành.`);
             
             // Clear cart and close modal
             cart = [];
             renderCart();
             closePaymentModal();
             
-            // Refresh data (if needed, e.g., update stock)
-            // loadProducts(); 
-            // loadCustomers(); 
+            // Refresh products to update stock
+            loadProducts();
             
         } else {
             const errorText = await response.text();
             console.error('Payment failed:', errorText);
-            showErrorModal('Lỗi', `Thanh toán thất bại: ${errorText}`);
+            let errorMessage = 'Thanh toán thất bại';
+            try {
+                const errorJson = JSON.parse(errorText);
+                errorMessage = errorJson.detail || errorMessage;
+            } catch (e) {
+                errorMessage = errorText || errorMessage;
+            }
+            showErrorModal('Lỗi', errorMessage);
         }
     } catch (error) {
         console.error('Lỗi xử lý thanh toán:', error);

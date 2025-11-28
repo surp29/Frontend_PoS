@@ -7,6 +7,7 @@
     
     <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/phone.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -123,6 +124,72 @@
                 </li>
         </ul>
         </nav>
+        
+        <!-- Chatbot Section -->
+        <div class="chatbot-section">
+            <button class="chatbot-toggle-btn" onclick="toggleChatbot()" title="Thư ký ảo AI">
+                <i class="fas fa-robot"></i>
+                <span class="chatbot-toggle-text">Thư ký ảo AI</span>
+                <span class="chatbot-badge" id="chatbotBadge" style="display: none;">!</span>
+            </button>
+            
+            <!-- Chatbot Window -->
+            <div class="chatbot-window" id="chatbotWindow" style="display: none;">
+                <div class="chatbot-header">
+                    <div class="chatbot-header-info">
+                        <i class="fas fa-robot"></i>
+                        <div>
+                            <h4>Thư ký ảo AI</h4>
+                            <span class="chatbot-status">Đang hoạt động</span>
+                        </div>
+                    </div>
+                    <button class="chatbot-close" onclick="toggleChatbot()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="chatbot-messages" id="chatbotMessages">
+                    <div class="chatbot-message bot">
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <p>Xin chào! Tôi là Thư ký ảo AI của bạn. Tôi có thể giúp bạn:</p>
+                            <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                                <li>Phân tích và thống kê tồn kho</li>
+                                <li>Đề xuất đặt hàng tự động</li>
+                                <li>Kiểm tra sản phẩm bán chạy, sắp hết hàng</li>
+                                <li>Báo cáo và phân tích doanh thu</li>
+                            </ul>
+                            <p style="margin-top: 0.5rem;">Hãy thử: "Đề xuất đặt hàng", "Sản phẩm sắp hết", "Phân tích tồn kho"</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chatbot-suggestions" id="chatbotSuggestions">
+                    <button class="suggestion-btn" onclick="sendChatbotMessage('Đề xuất đặt hàng')">
+                        <i class="fas fa-shopping-cart"></i> Đề xuất đặt hàng
+                    </button>
+                    <button class="suggestion-btn" onclick="sendChatbotMessage('Sản phẩm sắp hết')">
+                        <i class="fas fa-exclamation-triangle"></i> Sản phẩm sắp hết
+                    </button>
+                    <button class="suggestion-btn" onclick="sendChatbotMessage('Phân tích tồn kho')">
+                        <i class="fas fa-chart-bar"></i> Phân tích tồn kho
+                    </button>
+                </div>
+                
+                <div class="chatbot-input-container">
+                    <input type="text" 
+                           class="chatbot-input" 
+                           id="chatbotInput" 
+                           placeholder="Nhập câu hỏi của bạn..."
+                           onkeypress="handleChatbotKeypress(event)">
+                    <button class="chatbot-send-btn" onclick="sendChatbotMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
         
         <!-- User Account Section -->
         <div class="user-account-section">
@@ -289,6 +356,10 @@
             const form = document.getElementById('switchAccountForm');
             const formData = new FormData(form);
             
+            // Clear chat history when switching account
+            sessionStorage.removeItem('chatbot_history');
+            resetChatHistory();
+            
             // Implementation for switching account
             console.log('Switching account...');
             closeSwitchAccountModal();
@@ -296,10 +367,14 @@
 
         // Logout functionality
         function logout() {
-            // Clear sessionStorage
+            // Clear sessionStorage including chat history
             sessionStorage.removeItem('access_token');
             sessionStorage.removeItem('user_id');
             sessionStorage.removeItem('username');
+            sessionStorage.removeItem('chatbot_history');
+            
+            // Reset chat history
+            resetChatHistory();
             
             // Redirect to login
             window.location.href = '/login';
@@ -593,6 +668,15 @@
                 }
             });
             
+            // Get phone value from phone component if exists
+            const phoneEl = form.querySelector('input[data-phone][name="phone"]');
+            if (phoneEl && window.getPhoneValue) {
+                const phoneValue = window.getPhoneValue(phoneEl);
+                if (phoneValue) {
+                    data.phone = phoneValue;
+                }
+            }
+            
             return data;
         }
         
@@ -659,6 +743,430 @@
         });
     </script>
 
+    <!-- Phone Input Component -->
+    <script src="{{ url_for('static', filename='js/phone.js') }}"></script>
+    
+    <!-- Utility Functions -->
+    <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+    
+    <!-- Chatbot Script -->
+    <script>
+        const BACKEND_URL = '{{ BACKEND_URL }}';
+        
+        // Chatbot functionality
+        function toggleChatbot() {
+            const chatbotWindow = document.getElementById('chatbotWindow');
+            const sidebar = document.querySelector('.sidebar');
+            const isVisible = chatbotWindow.style.display !== 'none';
+            chatbotWindow.style.display = isVisible ? 'none' : 'flex';
+            
+            // Adjust position based on sidebar state
+            if (!isVisible) {
+                updateChatbotPosition();
+                loadChatHistory();
+                // Focus input when opening
+                setTimeout(() => {
+                    document.getElementById('chatbotInput').focus();
+                }, 100);
+            }
+        }
+        
+        // Load chat history from sessionStorage
+        function loadChatHistory() {
+            const messagesContainer = document.getElementById('chatbotMessages');
+            const chatHistory = sessionStorage.getItem('chatbot_history');
+            
+            // Only load if chatbot window is visible and we have history
+            if (chatHistory && messagesContainer) {
+                try {
+                    const history = JSON.parse(chatHistory);
+                    // Clear default welcome message if we have history
+                    if (history.length > 0) {
+                        // Check if we already loaded history (avoid duplicate loading)
+                        const existingMessages = messagesContainer.querySelectorAll('.chatbot-message');
+                        if (existingMessages.length <= 1) { // Only welcome message exists
+                            messagesContainer.innerHTML = '';
+                            history.forEach(msg => {
+                                addMessageToDOM(msg.type, msg.content, false, false);
+                            });
+                            // Scroll to bottom after loading
+                            setTimeout(() => {
+                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                            }, 100);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error loading chat history:', e);
+                }
+            }
+        }
+        
+        // Save chat history to sessionStorage
+        function saveChatHistory() {
+            const messagesContainer = document.getElementById('chatbotMessages');
+            const messages = messagesContainer.querySelectorAll('.chatbot-message');
+            const history = [];
+            
+            messages.forEach(msg => {
+                // Skip loading messages
+                const isLoading = msg.getAttribute('data-loading') === 'true';
+                if (isLoading) return;
+                
+                const type = msg.classList.contains('user') ? 'user' : 'bot';
+                
+                // Check if this message has suggestions
+                const suggestionCard = msg.querySelector('.suggestion-card');
+                if (suggestionCard) {
+                    // For messages with suggestions, save the text content
+                    const contentEl = msg.querySelector('.message-content p');
+                    if (contentEl) {
+                        const content = contentEl.textContent || contentEl.innerText;
+                        if (content && !content.includes('Đang phân tích...')) {
+                            history.push({ type, content, hasSuggestions: true });
+                        }
+                    }
+                } else {
+                    // Regular message
+                    const contentEl = msg.querySelector('.message-content p');
+                    if (contentEl) {
+                        const content = contentEl.textContent || contentEl.innerText;
+                        if (content && !content.includes('Đang phân tích...') && !content.includes('fa-spinner')) {
+                            history.push({ type, content });
+                        }
+                    }
+                }
+            });
+            
+            sessionStorage.setItem('chatbot_history', JSON.stringify(history));
+        }
+        
+        // Reset chat history
+        function resetChatHistory() {
+            sessionStorage.removeItem('chatbot_history');
+            const messagesContainer = document.getElementById('chatbotMessages');
+            // Reset to default welcome message
+            messagesContainer.innerHTML = `
+                <div class="chatbot-message bot">
+                    <div class="message-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <p>Xin chào! Tôi là Thư ký ảo AI của bạn. Tôi có thể giúp bạn:</p>
+                        <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                            <li>Phân tích và thống kê tồn kho</li>
+                            <li>Đề xuất đặt hàng tự động</li>
+                            <li>Kiểm tra sản phẩm bán chạy, sắp hết hàng</li>
+                            <li>Báo cáo và phân tích doanh thu</li>
+                        </ul>
+                        <p style="margin-top: 0.5rem;">Hãy thử: "Đề xuất đặt hàng", "Sản phẩm sắp hết", "Phân tích tồn kho"</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function updateChatbotPosition() {
+            const chatbotWindow = document.getElementById('chatbotWindow');
+            const sidebar = document.querySelector('.sidebar');
+            
+            if (sidebar && chatbotWindow) {
+                if (sidebar.classList.contains('collapsed')) {
+                    chatbotWindow.style.left = '100px';
+                } else {
+                    chatbotWindow.style.left = '300px';
+                }
+            }
+        }
+        
+        // Update chatbot position when sidebar state changes
+        document.addEventListener('DOMContentLoaded', function() {
+            // Watch for sidebar class changes
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                            updateChatbotPosition();
+                        }
+                    });
+                });
+                observer.observe(sidebar, { attributes: true });
+            }
+        });
+        
+        function handleChatbotKeypress(event) {
+            if (event.key === 'Enter') {
+                sendChatbotMessage();
+            }
+        }
+        
+        async function sendChatbotMessage(message = null) {
+            const input = document.getElementById('chatbotInput');
+            const messagesContainer = document.getElementById('chatbotMessages');
+            const suggestionsContainer = document.getElementById('chatbotSuggestions');
+            
+            const userMessage = message || input.value.trim();
+            if (!userMessage) return;
+            
+            // Clear input
+            input.value = '';
+            
+            // Add user message
+            addMessage('user', userMessage);
+            saveChatHistory(); // Save after user message
+            
+            // Hide suggestions while processing
+            suggestionsContainer.style.display = 'none';
+            
+            // Show loading
+            const loadingId = addMessage('bot', 'Đang phân tích...', true);
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/chatbot/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+                    },
+                    body: JSON.stringify({ message: userMessage })
+                });
+                
+                // Remove loading message IMMEDIATELY before processing response
+                const loadingMsg = document.getElementById(loadingId);
+                if (loadingMsg) {
+                    loadingMsg.remove(); // Remove immediately without animation for cleaner UX
+                }
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Add bot response
+                    addMessage('bot', data.response);
+                    
+                    // Add suggestions if available
+                    if (data.suggestions && data.suggestions.length > 0) {
+                        addSuggestions(data.suggestions);
+                    }
+                    
+                    // Save history after bot response
+                    saveChatHistory();
+                } else {
+                    addMessage('bot', 'Xin lỗi, đã xảy ra lỗi khi xử lý yêu cầu của bạn.');
+                    saveChatHistory();
+                }
+            } catch (error) {
+                // Remove loading message IMMEDIATELY
+                const loadingMsg = document.getElementById(loadingId);
+                if (loadingMsg) {
+                    loadingMsg.remove();
+                }
+                
+                console.error('Chatbot error:', error);
+                addMessage('bot', 'Xin lỗi, không thể kết nối đến server. Vui lòng thử lại sau.');
+                saveChatHistory();
+            }
+            
+            // Show suggestions again
+            suggestionsContainer.style.display = 'flex';
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function addMessage(type, content, isLoading = false) {
+            return addMessageToDOM(type, content, isLoading, true);
+        }
+        
+        function addMessageToDOM(type, content, isLoading = false, scroll = true) {
+            const messagesContainer = document.getElementById('chatbotMessages');
+            const messageId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chatbot-message ${type}`;
+            messageDiv.id = messageId;
+            messageDiv.setAttribute('data-loading', isLoading ? 'true' : 'false');
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = type === 'bot' ? '<i class="fas fa-robot"></i>' : '<i class="fas fa-user"></i>';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            
+            if (isLoading) {
+                messageContent.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> ' + content + '</p>';
+            } else {
+                // Convert line breaks to <br>
+                const formattedContent = content.replace(/\n/g, '<br>');
+                messageContent.innerHTML = '<p>' + formattedContent + '</p>';
+            }
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            if (scroll) {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+            
+            return messageId;
+        }
+        
+        function addSuggestions(suggestions) {
+            const messagesContainer = document.getElementById('chatbotMessages');
+            
+            const suggestionCard = document.createElement('div');
+            suggestionCard.className = 'suggestion-card';
+            
+            const title = document.createElement('h5');
+            title.textContent = '💡 Đề xuất đặt hàng:';
+            suggestionCard.appendChild(title);
+            
+            suggestions.forEach(suggestion => {
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                
+                const info = document.createElement('div');
+                info.className = 'suggestion-item-info';
+                
+                const name = document.createElement('div');
+                name.className = 'suggestion-item-name';
+                name.textContent = suggestion.product_name || suggestion.ma_sp;
+                
+                const details = document.createElement('div');
+                details.className = 'suggestion-item-details';
+                let detailsText = `Mã: ${suggestion.ma_sp} | Tồn kho: ${(suggestion.current_stock || 0).toLocaleString()}`;
+                if (suggestion.days_until_out && suggestion.days_until_out !== 'N/A') {
+                    detailsText += ` | Dự kiến hết trong: ${suggestion.days_until_out} ngày`;
+                }
+                if (suggestion.sales_rate) {
+                    detailsText += ` | Tốc độ bán: ${suggestion.sales_rate}/ngày`;
+                }
+                details.textContent = detailsText;
+                
+                info.appendChild(name);
+                info.appendChild(details);
+                
+                const action = document.createElement('div');
+                action.className = 'suggestion-item-action';
+                
+                const orderBtn = document.createElement('button');
+                orderBtn.className = 'order-btn';
+                orderBtn.textContent = `Đặt ${(suggestion.recommended_quantity || 0).toLocaleString()}`;
+                orderBtn.onclick = () => createOrderFromSuggestion(suggestion);
+                
+                action.appendChild(orderBtn);
+                
+                item.appendChild(info);
+                item.appendChild(action);
+                suggestionCard.appendChild(item);
+            });
+            
+            const botMessage = document.createElement('div');
+            botMessage.className = 'chatbot-message bot';
+            botMessage.setAttribute('data-loading', 'false');
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = '<i class="fas fa-robot"></i>';
+            
+            botMessage.appendChild(avatar);
+            botMessage.appendChild(suggestionCard);
+            
+            messagesContainer.appendChild(botMessage);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        async function createOrderFromSuggestion(suggestion) {
+            if (!confirm(`Bạn có chắc muốn tạo đơn đặt hàng cho ${suggestion.product_name} với số lượng ${(suggestion.recommended_quantity || 0).toLocaleString()}?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/chatbot/create-order`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+                    },
+                    body: JSON.stringify({
+                        product_code: suggestion.ma_sp,
+                        quantity: suggestion.recommended_quantity
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addMessage('bot', `✅ ${data.message}`);
+                    
+                    // Show success notification
+                    if (typeof showSuccessModal === 'function') {
+                        showSuccessModal('Thành công', data.message);
+                    }
+                    
+                    // Optionally redirect to orders page
+                    setTimeout(() => {
+                        if (confirm('Bạn có muốn xem đơn hàng vừa tạo không?')) {
+                            window.location.href = '/orders';
+                        }
+                    }, 1000);
+                } else {
+                    const error = await response.json();
+                    addMessage('bot', `❌ Lỗi: ${error.detail || 'Không thể tạo đơn hàng'}`);
+                }
+            } catch (error) {
+                console.error('Error creating order:', error);
+                addMessage('bot', '❌ Đã xảy ra lỗi khi tạo đơn hàng. Vui lòng thử lại.');
+            }
+        }
+        
+        // Check for low stock products on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLowStockProducts();
+        });
+        
+        async function checkLowStockProducts() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/chatbot/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+                    },
+                    body: JSON.stringify({ message: 'sản phẩm sắp hết' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.suggestions && data.suggestions.length > 0) {
+                        // Show badge if there are products needing reorder
+                        const badge = document.getElementById('chatbotBadge');
+                        if (badge) {
+                            badge.textContent = data.suggestions.length;
+                            badge.style.display = 'flex';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking low stock:', error);
+            }
+        }
+        
+        // Close chatbot when clicking outside
+        document.addEventListener('click', function(e) {
+            const chatbotWindow = document.getElementById('chatbotWindow');
+            const chatbotSection = document.querySelector('.chatbot-section');
+            
+            if (chatbotWindow && chatbotWindow.style.display !== 'none') {
+                if (!chatbotWindow.contains(e.target) && !chatbotSection.contains(e.target)) {
+                    chatbotWindow.style.display = 'none';
+                }
+            }
+        });
+    </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html> 

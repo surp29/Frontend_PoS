@@ -11,7 +11,7 @@ Quản lý thông tin nhân viên và phân ca làm việc
 {% endblock %}
 
 {% block header_actions %}
-<button class="btn btn-primary" id="addEmployeeBtn" style="display: none;">
+<button class="btn btn-primary" onclick="openAddEmployeeModal()">
     <i class="fas fa-plus"></i>
     Thêm nhân viên
 </button>
@@ -123,7 +123,6 @@ Quản lý thông tin nhân viên và phân ca làm việc
                         <th>Phòng ban</th>
                         <th>Email</th>
                         <th>Số điện thoại</th>
-                        <th>Địa chỉ</th>
                         <th>Trạng thái</th>
                         <th>Thao tác</th>
                     </tr>
@@ -154,24 +153,38 @@ Quản lý thông tin nhân viên và phân ca làm việc
             <form id="addEmployeeForm">
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Tên nhân viên *</label>
-                        <input type="text" class="form-input" name="name" required placeholder="Nhập tên nhân viên">
+                        <label class="form-label">Tài khoản *</label>
+                        <input type="text" class="form-input" name="username" required placeholder="Nhập tài khoản">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-input" name="email" placeholder="Nhập email">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Số điện thoại</label>
-                        <input type="tel" class="form-input" name="phone" placeholder="Nhập số điện thoại">
+                        <label class="form-label">Mật khẩu *</label>
+                        <input type="password" class="form-input" name="password" required placeholder="Nhập mật khẩu">
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
+                        <label class="form-label">Tên nhân viên *</label>
+                        <input type="text" class="form-input" name="name" required placeholder="Nhập tên nhân viên">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="tel" class="form-input" data-phone name="phone" placeholder="Nhập số điện thoại">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" name="email" placeholder="Nhập email">
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Chức vụ</label>
                         <input type="text" class="form-input" name="position" placeholder="Nhập chức vụ">
                     </div>
+                </div>
+
+                <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Phòng ban</label>
                         <input type="text" class="form-input" name="department" placeholder="Nhập phòng ban">
@@ -183,11 +196,6 @@ Quản lý thông tin nhân viên và phân ca làm việc
                             <option value="false">Không hoạt động</option>
                         </select>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Địa chỉ</label>
-                    <textarea class="form-textarea" name="address" rows="3" placeholder="Nhập địa chỉ"></textarea>
                 </div>
             </form>
         </div>
@@ -213,24 +221,38 @@ Quản lý thông tin nhân viên và phân ca làm việc
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Tên nhân viên *</label>
-                        <input type="text" class="form-input" name="name" required>
+                        <label class="form-label">Tài khoản *</label>
+                        <input type="text" class="form-input" name="username" required placeholder="Nhập tài khoản">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-input" name="email">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Số điện thoại</label>
-                        <input type="tel" class="form-input" name="phone">
+                        <label class="form-label">Mật khẩu mới</label>
+                        <input type="password" class="form-input" name="password" placeholder="Để trống nếu không đổi mật khẩu">
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
+                        <label class="form-label">Tên nhân viên *</label>
+                        <input type="text" class="form-input" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="tel" class="form-input" data-phone name="phone">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" name="email">
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Chức vụ</label>
                         <input type="text" class="form-input" name="position">
                     </div>
+                </div>
+                
+                <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Phòng ban</label>
                         <input type="text" class="form-input" name="department">
@@ -242,11 +264,6 @@ Quản lý thông tin nhân viên và phân ca làm việc
                             <option value="false">Không hoạt động</option>
                         </select>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Địa chỉ</label>
-                    <textarea class="form-textarea" name="address" rows="3"></textarea>
                 </div>
             </form>
         </div>
@@ -282,10 +299,6 @@ Quản lý thông tin nhân viên và phân ca làm việc
 <div id="schedulesSection" class="tab-section" style="display: none;">
     <div class="schedule-container">
         <div class="schedule-controls">
-            <button class="btn btn-primary" onclick="openAssignShiftModal()">
-                <i class="fas fa-calendar-plus"></i>
-                Phân ca cho nhân viên
-            </button>
             <div class="date-navigation">
                 <button class="btn btn-secondary" onclick="previousMonth()">
                     <i class="fas fa-chevron-left"></i>
@@ -664,7 +677,7 @@ Quản lý thông tin nhân viên và phân ca làm việc
 let employeesData = [];
 let filteredEmployees = [];
 let currentPage = 1;
-const itemsPerPage = 10;
+const itemsPerPage = 20; // Popup modal: 20 items per page
 let deleteEmployeeId = null;
 
 // Schedule variables
@@ -678,7 +691,6 @@ document.addEventListener('DOMContentLoaded', function() {
     loadSchedulesData();
     setupEventListeners();
     renderCalendar();
-    showHeaderButton();
 });
 
 // Setup event listeners
@@ -693,12 +705,6 @@ function setupEventListeners() {
             switchTab(this.getAttribute('data-tab'));
         });
     });
-    
-    // Header button listener
-    const addBtn = document.getElementById('addEmployeeBtn');
-    if (addBtn) {
-        addBtn.addEventListener('click', openAddEmployeeModal);
-    }
 }
 
 // Tab switching
@@ -710,22 +716,9 @@ function switchTab(tab) {
     
     document.getElementById('employeesSection').style.display = tab === 'employees' ? 'block' : 'none';
     document.getElementById('schedulesSection').style.display = tab === 'schedules' ? 'block' : 'none';
-    
-    showHeaderButton();
 }
 
-// Show/hide header button based on current tab
-function showHeaderButton() {
-    const btn = document.getElementById('addEmployeeBtn');
-    if (btn) {
-        if (currentTab === 'employees') {
-            btn.style.display = 'inline-flex';
-            btn.onclick = openAddEmployeeModal;
-        } else {
-            btn.style.display = 'none';
-        }
-    }
-}
+// Removed header action button logic
 
 // Load employees data
 async function loadEmployeesData() {
@@ -822,7 +815,6 @@ function updateEmployeeTable() {
             <td><span class="badge badge-info">${employee.department || '-'}</span></td>
             <td>${employee.email || '-'}</td>
             <td>${employee.phone || '-'}</td>
-            <td>${employee.address || '-'}</td>
             <td>${getStatusBadge(employee.status)}</td>
             <td>
                 <div class="table-actions">
@@ -910,14 +902,52 @@ function goToPage(page) {
 
 // Modal functions
 function openAddEmployeeModal() {
-    document.getElementById('addEmployeeModal').style.display = 'flex';
-    document.getElementById('addEmployeeForm').reset();
-    storeModalState('addEmployeeModal', document.getElementById('addEmployeeForm'));
+    const modal = document.getElementById('addEmployeeModal');
+    const form = document.getElementById('addEmployeeForm');
+    
+    modal.style.display = 'flex';
+    form.reset();
+    
+    // Wait for modal to be visible, then reset phone component
+    setTimeout(() => {
+        const phoneInput = form.querySelector('input[data-phone][name="phone"]');
+        if (phoneInput) {
+            const phoneContainer = phoneInput.closest('.phone-input-container');
+            if (phoneContainer) {
+                // Phone component already initialized, just reset values
+                const countrySelect = phoneContainer.querySelector('.phone-country-select');
+                const numberInput = phoneContainer.querySelector('.phone-number-input');
+                if (countrySelect) countrySelect.value = '+84';
+                if (numberInput) numberInput.value = '';
+            } else {
+                // Phone component not initialized yet, MutationObserver will handle it
+                // Just ensure it's marked for initialization
+                phoneInput.setAttribute('data-phone', '');
+            }
+        }
+    }, 50);
+    
+    // Store initial state
+    storeModalState('addEmployeeModal', form);
 }
 
 function closeAddEmployeeModal() {
-    document.getElementById('addEmployeeModal').style.display = 'none';
-    clearModalState('addEmployeeModal');
+    closeModalWithConfirmation('addEmployeeModal', function() {
+        document.getElementById('addEmployeeForm').reset();
+        
+        // Reset phone component if needed
+        const form = document.getElementById('addEmployeeForm');
+        const phoneInput = form.querySelector('input[data-phone][name="phone"]');
+        if (phoneInput) {
+            const phoneContainer = phoneInput.closest('.phone-input-container');
+            if (phoneContainer) {
+                const countrySelect = phoneContainer.querySelector('.phone-country-select');
+                const numberInput = phoneContainer.querySelector('.phone-number-input');
+                if (countrySelect) countrySelect.value = '+84';
+                if (numberInput) numberInput.value = '';
+            }
+        }
+    });
 }
 
 function editEmployee(id) {
@@ -925,13 +955,38 @@ function editEmployee(id) {
     if (employee) {
         const form = document.getElementById('editEmployeeForm');
         form.querySelector('input[name="id"]').value = employee.id;
+        form.querySelector('input[name="username"]').value = employee.username || '';
+        form.querySelector('input[name="password"]').value = ''; // Clear password field
         form.querySelector('input[name="name"]').value = employee.name || '';
         form.querySelector('input[name="email"]').value = employee.email || '';
-        form.querySelector('input[name="phone"]').value = employee.phone || '';
+        
+        // Set phone value using phone component
+        const phoneInput = form.querySelector('input[data-phone][name="phone"]');
+        if (phoneInput && window.setPhoneValue) {
+            window.setPhoneValue(phoneInput, employee.phone || '');
+        } else if (phoneInput) {
+            phoneInput.value = employee.phone || '';
+        }
+        
         form.querySelector('input[name="position"]').value = employee.position || '';
         form.querySelector('input[name="department"]').value = employee.department || '';
         form.querySelector('select[name="status"]').value = (employee.status || false).toString();
-        form.querySelector('textarea[name="address"]').value = employee.address || '';
+        
+        // Store initial state for phone component
+        setTimeout(() => {
+            const phoneInput = form.querySelector('input[data-phone][name="phone"]');
+            if (phoneInput) {
+                const phoneContainer = phoneInput.closest('.phone-input-container');
+                if (phoneContainer) {
+                    const numberInput = phoneContainer.querySelector('.phone-number-input');
+                    if (numberInput && employee.phone) {
+                        const phone = employee.phone || '';
+                        const localNumber = phone.replace(/^\+\d+/, '').replace(/^0/, '');
+                        numberInput.value = localNumber;
+                    }
+                }
+            }
+        }, 100);
         
         storeModalState('editEmployeeModal', form);
         document.getElementById('editEmployeeModal').style.display = 'flex';
@@ -939,8 +994,22 @@ function editEmployee(id) {
 }
 
 function closeEditEmployeeModal() {
-    document.getElementById('editEmployeeModal').style.display = 'none';
-    clearModalState('editEmployeeModal');
+    closeModalWithConfirmation('editEmployeeModal', function() {
+        const form = document.getElementById('editEmployeeForm');
+        form.reset();
+        
+        // Reset phone component if needed
+        const phoneInput = form.querySelector('input[data-phone][name="phone"]');
+        if (phoneInput) {
+            const phoneContainer = phoneInput.closest('.phone-input-container');
+            if (phoneContainer) {
+                const countrySelect = phoneContainer.querySelector('.phone-country-select');
+                const numberInput = phoneContainer.querySelector('.phone-number-input');
+                if (countrySelect) countrySelect.value = '+84';
+                if (numberInput) numberInput.value = '';
+            }
+        }
+    });
 }
 
 function deleteEmployee(id) {
@@ -959,6 +1028,8 @@ async function createEmployee() {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
     data.status = data.status === 'true';
+    const phoneEl = form.querySelector('input[data-phone][name="phone"]');
+    if (phoneEl) data.phone = window.getPhoneValue(phoneEl) || '';
     
     try {
         const response = await fetch('{{ BACKEND_URL }}/api/users/', {
@@ -991,6 +1062,15 @@ async function updateEmployee() {
     const id = data.id;
     delete data.id;
     data.status = data.status === 'true';
+    
+    // Handle phone input
+    const phoneEl = form.querySelector('input[data-phone][name="phone"]');
+    if (phoneEl) data.phone = window.getPhoneValue(phoneEl) || '';
+    
+    // Only include password if it's not empty
+    if (!data.password || data.password.trim() === '') {
+        delete data.password;
+    }
     
     try {
         const response = await fetch(`{{ BACKEND_URL }}/api/users/${id}`, {

@@ -151,8 +151,13 @@ Quản lý danh sách sản phẩm, thêm mới, chỉnh sửa và theo dõi t�
             <form id="addProductForm">
 			<div class="form-row">
 				<div class="form-group">
-                        <label class="form-label">Mã sản phẩm *</label>
-                        <input type="text" class="form-input" name="code" required onblur="tryPopulateProductFromWarehouse(this.value)" oninput="debouncedTryPopulateFromWarehouse(this.value)">
+                        <label class="form-label">
+                            Mã sản phẩm *
+                            <button type="button" class="btn-icon-select" onclick="openWarehouseProductSelector()" title="Chọn từ kho hàng">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </label>
+                        <input type="text" class="form-input" name="code" id="add_product_code" required onblur="tryPopulateProductFromWarehouse(this.value)" oninput="debouncedTryPopulateFromWarehouse(this.value)">
 		</div>
                     <div class="form-group">
                         <label class="form-label">Tên sản phẩm *</label>
@@ -227,8 +232,13 @@ Quản lý danh sách sản phẩm, thêm mới, chỉnh sửa và theo dõi t�
                 
 			<div class="form-row">
 				<div class="form-group">
-                        <label class="form-label">Mã sản phẩm *</label>
-                        <input type="text" class="form-input" name="code" required onblur="tryPopulateProductFromWarehouse(this.value)" oninput="debouncedTryPopulateFromWarehouse(this.value)">
+                        <label class="form-label">
+                            Mã sản phẩm *
+                            <button type="button" class="btn-icon-select" onclick="openWarehouseProductSelector('edit')" title="Chọn từ kho hàng">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </label>
+                        <input type="text" class="form-input" name="code" id="edit_product_code" required readonly>
 					</div>
                     <div class="form-group">
                         <label class="form-label">Tên sản phẩm *</label>
@@ -244,7 +254,7 @@ Quản lý danh sách sản phẩm, thêm mới, chỉnh sửa và theo dõi t�
 				<div class="form-group">
                         <label class="form-label">Giá vốn</label>
                         <div class="money-input-container">
-                            <input type="text" id="edit_cost_price_display" class="form-input" oninput="formatMoneyTyping(this, document.getElementById('edit_cost_price'))" onfocus="clearZeroOnFocus(this)" onblur="restoreZeroIfEmpty(this)">
+                            <input type="text" id="edit_cost_price_display" class="form-input" readonly>
                             <input type="hidden" name="cost_price" id="edit_cost_price">
                             <span class="currency-unit">VNĐ</span>
 					</div>
@@ -259,7 +269,8 @@ Quản lý danh sách sản phẩm, thêm mới, chỉnh sửa và theo dõi t�
 					</div>
                     <div class="form-group">
                         <label class="form-label">Số lượng *</label>
-                        <input type="number" class="form-input" name="quantity" min="0" required oninput="enforceNonNegativeNumber(this)" onfocus="clearZeroOnFocus(this)" onblur="restoreZeroIfEmpty(this)">
+                        <input type="number" class="form-input" name="quantity" id="edit_quantity" min="0" required oninput="validateEditProductQuantity(this)" onfocus="clearZeroOnFocus(this)" onblur="restoreZeroIfEmpty(this)">
+                        <div id="editQuantityMessage" class="quantity-message" style="display: none;"></div>
 				</div>
 			</div>
                 
@@ -307,6 +318,77 @@ Quản lý danh sách sản phẩm, thêm mới, chỉnh sửa và theo dõi t�
         </div>
     </div>
 </div>
+
+<!-- Warehouse Product Selector Modal -->
+<div class="modal-overlay" id="warehouseProductSelectorModal" style="display: none;">
+    <div class="modal modal-large">
+        <div class="modal-header">
+            <h3><i class="fas fa-list"></i> Chọn sản phẩm từ kho hàng</h3>
+            <button class="modal-close" onclick="closeWarehouseProductSelector()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group" style="margin-bottom: 1rem;">
+                <div class="search-input">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-input" id="warehouseProductSearch" placeholder="Tìm kiếm theo mã sản phẩm, tên kho...">
+                </div>
+            </div>
+            <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Mã SP</th>
+                            <th>Tên kho</th>
+                            <th>Giá nhập</th>
+                            <th>Số lượng</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="warehouseProductSelectorBody">
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeWarehouseProductSelector()">Đóng</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Quantity validation message styles */
+.quantity-message {
+    margin-top: var(--spacing-1);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-2);
+    border-radius: var(--radius);
+    border-left: 3px solid;
+    transition: all var(--transition-normal);
+}
+
+.quantity-message.warning {
+    background: var(--warning-50);
+    border-left-color: var(--warning-color);
+    color: var(--warning-700);
+}
+
+.quantity-message.error {
+    background: var(--danger-50);
+    border-left-color: var(--danger-color);
+    color: var(--danger-700);
+}
+
+.quantity-message.info {
+    background: var(--info-50);
+    border-left-color: var(--info-color);
+    color: var(--info-700);
+}
+</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -315,10 +397,13 @@ Quản lý danh sách sản phẩm, thêm mới, chỉnh sửa và theo dõi t�
 let productsData = [];
 let filteredProducts = [];
 let currentPage = 1;
-const itemsPerPage = 10;
+const itemsPerPage = 20; // Popup modal: 20 items per page
 let deleteProductId = null;
 let warehouseDataForProducts = [];
 let warehouseCodeToItem = {};
+let currentProductFormMode = 'add'; // 'add' or 'edit'
+let filteredWarehouseForSelector = [];
+let editProductWarehouseQuantity = 0; // Store max quantity from warehouse for edit modal
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
@@ -626,19 +711,48 @@ function editProduct(id) {
     if (product) {
 	const form = document.getElementById('editProductForm');
         form.querySelector('input[name="id"]').value = product.id;
-        form.querySelector('input[name="code"]').value = product.ma_sp || '';
+        
+        // Mã sản phẩm và giá vốn là readonly (dựa vào warehouse)
+        const codeInput = form.querySelector('input[name="code"]');
+        codeInput.value = product.ma_sp || '';
+        codeInput.readOnly = true;
+        
         form.querySelector('input[name="name"]').value = product.ten_sp || '';
         form.querySelector('input[name="group"]').value = product.nhom_sp || '';
         
-        // Set money values
+        // Set money values - giá vốn là readonly
         const costPrice = product.gia_von || 0;
         const price = product.gia_ban || 0;
         document.getElementById('edit_cost_price').value = costPrice;
         document.getElementById('edit_cost_price_display').value = costPrice.toLocaleString();
+        document.getElementById('edit_cost_price_display').readOnly = true;
+        
         document.getElementById('edit_price').value = price;
         document.getElementById('edit_price_display').value = price.toLocaleString();
         
-        form.querySelector('input[name="quantity"]').value = product.so_luong || 0;
+        // Get warehouse quantity for this product code
+        const productCode = product.ma_sp || '';
+        editProductWarehouseQuantity = 0;
+        if (productCode && warehouseDataForProducts.length > 0) {
+            // Find all warehouse entries for this product code and sum quantities
+            const warehouseItems = warehouseDataForProducts.filter(w => w.ma_sp === productCode);
+            editProductWarehouseQuantity = warehouseItems.reduce((sum, item) => sum + (item.so_luong || 0), 0);
+        }
+        
+        const quantityInput = form.querySelector('input[name="quantity"]');
+        quantityInput.value = product.so_luong || 0;
+        
+        // Reset quantity message
+        const quantityMessage = document.getElementById('editQuantityMessage');
+        if (quantityMessage) {
+            quantityMessage.style.display = 'none';
+        }
+        
+        // Validate quantity on load
+        if (quantityInput && editProductWarehouseQuantity > 0) {
+            validateEditProductQuantity(quantityInput);
+        }
+        
         form.querySelector('input[name="unit"]').value = product.don_vi || '';
         form.querySelector('textarea[name="description"]').value = product.mo_ta || '';
         
@@ -669,10 +783,17 @@ async function updateProduct() {
     // Get values from hidden inputs for money fields
     const costPrice = parseInt(document.getElementById('edit_cost_price').value || '0');
     const price = parseInt(document.getElementById('edit_price').value || '0');
+    const quantity = parseInt(formData.get('quantity') || '0');
     
     // Validation: Giá vốn phải nhỏ hơn giá bán
     if (costPrice >= price) {
         showErrorMessage('Giá vốn phải nhỏ hơn giá bán!');
+        return;
+    }
+    
+    // Validation: Số lượng không được vượt quá tồn kho
+    if (editProductWarehouseQuantity > 0 && quantity > editProductWarehouseQuantity) {
+        showErrorMessage(`Số lượng không được vượt quá tồn kho! Tồn kho hiện có: ${editProductWarehouseQuantity.toLocaleString()} sản phẩm.`);
         return;
     }
     
@@ -778,18 +899,25 @@ function showErrorMessage(message) {
 // Load warehouse data for auto-fill
 async function loadWarehouseDataForProducts() {
     try {
-        const response = await fetch('{{ BACKEND_URL }}/api/warehouse/');
+        const response = await fetch('{{ BACKEND_URL }}/api/warehouse/', {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
         if (response.ok) {
             warehouseDataForProducts = await response.json();
+            filteredWarehouseForSelector = [...warehouseDataForProducts];
             warehouseCodeToItem = {};
             warehouseDataForProducts.forEach(item => {
                 if (item && item.ma_sp) {
                     warehouseCodeToItem[String(item.ma_sp).toLowerCase()] = item;
                 }
             });
+            return Promise.resolve();
         }
     } catch (e) {
         console.error('Error loading warehouse for products:', e);
+        return Promise.reject(e);
     }
 }
 
@@ -897,6 +1025,186 @@ function previewImage(input, previewId) {
         reader.readAsDataURL(file);
     } else {
         preview.innerHTML = '';
+    }
+}
+
+// Warehouse Product Selector Functions
+function openWarehouseProductSelector(mode = 'add') {
+    currentProductFormMode = mode;
+    const modal = document.getElementById('warehouseProductSelectorModal');
+    modal.style.display = 'flex';
+    
+    // Load warehouse data if not loaded
+    if (warehouseDataForProducts.length === 0) {
+        loadWarehouseDataForProducts().then(() => {
+            updateWarehouseProductSelectorTable();
+        });
+    } else {
+        updateWarehouseProductSelectorTable();
+    }
+    
+    // Setup search - remove old listener first
+    const searchInput = document.getElementById('warehouseProductSearch');
+    const newSearchInput = searchInput.cloneNode(true);
+    searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+    newSearchInput.value = '';
+    newSearchInput.addEventListener('input', debounce(filterWarehouseProducts, 300));
+}
+
+function closeWarehouseProductSelector() {
+    document.getElementById('warehouseProductSelectorModal').style.display = 'none';
+    document.getElementById('warehouseProductSearch').value = '';
+}
+
+function filterWarehouseProducts() {
+    const searchTerm = document.getElementById('warehouseProductSearch').value.toLowerCase();
+    
+    filteredWarehouseForSelector = warehouseDataForProducts.filter(item => {
+        const matchesCode = !searchTerm || (item.ma_sp && item.ma_sp.toLowerCase().includes(searchTerm));
+        const matchesWarehouse = !searchTerm || (item.ten_kho && item.ten_kho.toLowerCase().includes(searchTerm));
+        return matchesCode || matchesWarehouse;
+    });
+    
+    updateWarehouseProductSelectorTable();
+}
+
+function updateWarehouseProductSelectorTable() {
+    const tbody = document.getElementById('warehouseProductSelectorBody');
+    
+    const dataToShow = filteredWarehouseForSelector.length > 0 ? filteredWarehouseForSelector : warehouseDataForProducts;
+    
+    if (dataToShow.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem;">Không có dữ liệu kho hàng</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = dataToShow.map(item => `
+        <tr>
+            <td><strong>${item.ma_sp || '-'}</strong></td>
+            <td>${item.ten_kho || '-'}</td>
+            <td>${(item.gia_nhap || 0).toLocaleString()} VNĐ</td>
+            <td>${(item.so_luong || 0).toLocaleString()}</td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="selectWarehouseProduct('${item.ma_sp}', ${item.gia_nhap || 0}, '${(item.ten_sp || '').replace(/'/g, "\\'")}', '${(item.nhom_san_pham || '').replace(/'/g, "\\'")}', ${item.so_luong || 0})">
+                    <i class="fas fa-check"></i> Chọn
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function selectWarehouseProduct(code, giaNhap, tenSp, nhomSp, soLuong) {
+    if (currentProductFormMode === 'add') {
+        // Fill add form
+        const codeInput = document.getElementById('add_product_code');
+        const costHidden = document.getElementById('add_cost_price');
+        const costDisplay = document.getElementById('add_cost_price_display');
+        const nameInput = document.getElementById('addProductForm').querySelector('input[name="name"]');
+        const groupInput = document.getElementById('addProductForm').querySelector('input[name="group"]');
+        const qtyInput = document.getElementById('addProductForm').querySelector('input[name="quantity"]');
+        
+        if (codeInput) codeInput.value = code;
+        if (costHidden && costDisplay) {
+            costHidden.value = giaNhap;
+            costDisplay.value = giaNhap.toLocaleString();
+        }
+        if (nameInput && tenSp) nameInput.value = tenSp;
+        if (groupInput && nhomSp) groupInput.value = nhomSp;
+        if (qtyInput && soLuong) qtyInput.value = soLuong;
+    } else {
+        // Fill edit form - chỉ cập nhật nếu chưa có giá trị
+        const codeInput = document.getElementById('edit_product_code');
+        const costHidden = document.getElementById('edit_cost_price');
+        const costDisplay = document.getElementById('edit_cost_price_display');
+        const nameInput = document.getElementById('editProductForm').querySelector('input[name="name"]');
+        const groupInput = document.getElementById('editProductForm').querySelector('input[name="group"]');
+        const qtyInput = document.getElementById('editProductForm').querySelector('input[name="quantity"]');
+        
+        // Mã sản phẩm và giá vốn chỉ set nếu chưa có giá trị (readonly)
+        if (codeInput && !codeInput.value) {
+            codeInput.value = code;
+        }
+        if (costHidden && costDisplay && !costHidden.value) {
+            costHidden.value = giaNhap;
+            costDisplay.value = giaNhap.toLocaleString();
+        }
+        if (nameInput && tenSp) nameInput.value = tenSp;
+        if (groupInput && nhomSp) groupInput.value = nhomSp;
+        
+        // Update warehouse quantity limit
+        if (code) {
+            const warehouseItems = warehouseDataForProducts.filter(w => w.ma_sp === code);
+            editProductWarehouseQuantity = warehouseItems.reduce((sum, item) => sum + (item.so_luong || 0), 0);
+        }
+        
+        // Validate quantity after updating warehouse limit
+        if (qtyInput) {
+            validateEditProductQuantity(qtyInput);
+        }
+    }
+    
+    // Close modal
+    closeWarehouseProductSelector();
+    showSuccessMessage('Đã chọn sản phẩm từ kho hàng!');
+}
+
+// Validate product quantity against warehouse quantity
+function validateEditProductQuantity(input) {
+    const quantity = parseInt(input.value) || 0;
+    const messageDiv = document.getElementById('editQuantityMessage');
+    
+    if (!messageDiv) return;
+    
+    // If no warehouse data or warehouse quantity is 0, allow any quantity
+    if (editProductWarehouseQuantity === 0) {
+        messageDiv.style.display = 'none';
+        return;
+    }
+    
+    if (quantity <= 0) {
+        messageDiv.style.display = 'none';
+        return;
+    }
+    
+    if (quantity > editProductWarehouseQuantity) {
+        messageDiv.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            Số lượng vượt quá tồn kho! Tồn kho hiện có: ${editProductWarehouseQuantity.toLocaleString()} sản phẩm.
+            <button type="button" onclick="setMaxEditProductQuantity()" style="margin-left: 8px; padding: 2px 8px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                Đặt tối đa
+            </button>
+        `;
+        messageDiv.className = 'quantity-message error';
+        messageDiv.style.display = 'block';
+        
+        // Auto-adjust to max available
+        input.value = editProductWarehouseQuantity;
+    } else if (quantity === editProductWarehouseQuantity) {
+        messageDiv.innerHTML = `
+            <i class="fas fa-info-circle"></i>
+            Đang sử dụng toàn bộ tồn kho (${editProductWarehouseQuantity.toLocaleString()} sản phẩm)
+        `;
+        messageDiv.className = 'quantity-message warning';
+        messageDiv.style.display = 'block';
+    } else {
+        const remaining = editProductWarehouseQuantity - quantity;
+        messageDiv.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            Còn lại ${remaining.toLocaleString()} sản phẩm trong kho
+        `;
+        messageDiv.className = 'quantity-message info';
+        messageDiv.style.display = 'block';
+    }
+}
+
+// Set quantity to maximum available from warehouse
+function setMaxEditProductQuantity() {
+    if (editProductWarehouseQuantity > 0) {
+        const quantityInput = document.getElementById('edit_quantity');
+        if (quantityInput) {
+            quantityInput.value = editProductWarehouseQuantity;
+            validateEditProductQuantity(quantityInput);
+        }
     }
 }
 </script>
